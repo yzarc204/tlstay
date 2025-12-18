@@ -1,0 +1,68 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Models\House;
+use App\Models\Banner;
+use Inertia\Inertia;
+
+class HomeController extends Controller
+{
+    public function index()
+    {
+        // Lấy 3 nhà trọ ngẫu nhiên, ưu tiên nhà trọ có phòng trống
+        $featuredHouses = House::with(['owner'])
+            ->withCount([
+                'rooms as available_rooms_count' => function ($query) {
+                    $query->where('status', 'available');
+                },
+                'rooms as total_rooms_count',
+            ])
+            ->get()
+            ->sortByDesc(function ($house) {
+                // Ưu tiên nhà trọ có phòng trống
+                return ($house->available_rooms_count ?? 0) > 0 ? 1 : 0;
+            })
+            ->shuffle() // Xáo trộn ngẫu nhiên
+            ->take(3)
+            ->map(function ($house) {
+                return [
+                    'id' => $house->id,
+                    'name' => $house->name,
+                    'address' => $house->address,
+                    'image' => $house->image ?? (is_array($house->images) && count($house->images) > 0 ? $house->images[0] : 'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=800'),
+                    'pricePerDay' => (float) $house->price_per_day,
+                    'floors' => $house->floors,
+                    'totalRooms' => $house->total_rooms_count ?? $house->total_rooms ?? 0,
+                    'availableRooms' => $house->available_rooms_count ?? 0,
+                    'rating' => (float) ($house->rating ?? 0),
+                    'reviews' => $house->reviews ?? 0,
+                    'amenities' => $house->amenities ?? [],
+                ];
+            })
+            ->values();
+
+        // Get active sliders
+        $sliders = Banner::getActive()->map(function ($slider) {
+            return [
+                'id' => $slider->id,
+                'title' => $slider->title,
+                'description' => $slider->description,
+                'image' => $slider->image,
+                'link' => $slider->link,
+                'show_text' => $slider->show_text,
+                'text_title' => $slider->text_title,
+                'text_subtitle' => $slider->text_subtitle,
+                'text_line1' => $slider->text_line1,
+                'text_line2' => $slider->text_line2,
+                'text_line3' => $slider->text_line3,
+                'text_position' => $slider->text_position,
+            ];
+        });
+
+        return Inertia::render('Home', [
+            'featuredHouses' => $featuredHouses,
+            'sliders' => $sliders,
+        ]);
+    }
+}

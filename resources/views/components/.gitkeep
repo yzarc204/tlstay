@@ -1,0 +1,9 @@
+# Blade Components
+
+Thư mục này chứa các Blade components có thể tái sử dụng.
+
+Ví dụ:
+- `alert.blade.php` - Component hiển thị thông báo
+- `button.blade.php` - Component button tùy chỉnh
+
+Lưu ý: Với dự án sử dụng Inertia.js, hầu hết UI components nên được tạo bằng Vue trong `resources/js/components/`.

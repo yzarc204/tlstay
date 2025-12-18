@@ -1,0 +1,8 @@
+# Email Templates
+
+Thư mục này chứa các email templates (Blade templates) cho hệ thống.
+
+Ví dụ:
+- `welcome.blade.php` - Email chào mừng người dùng mới
+- `booking-confirmation.blade.php` - Email xác nhận đặt phòng
+- `invoice.blade.php` - Email hóa đơn
