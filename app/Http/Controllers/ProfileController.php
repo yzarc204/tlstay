@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
 
 class ProfileController extends Controller
@@ -100,12 +101,14 @@ class ProfileController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:255',
+            'phone' => 'nullable|string|max:20',
             'id_card_number' => 'required|string|max:20',
             'id_card_issue_date' => 'required|date|before_or_equal:today',
             'id_card_issue_place' => 'required|string|max:255',
             'permanent_address' => 'required|string|max:500',
             'date_of_birth' => 'required|date|before:today',
             'gender' => 'required|in:male,female,other',
+            'signature' => 'nullable|string',
             'id_card_image' => 'nullable|image|mimes:jpeg,jpg,png|max:5120', // Max 5MB
         ], [
             'name.required' => 'Vui lòng nhập họ và tên',
@@ -136,27 +139,79 @@ class ProfileController extends Controller
 
         $updateData = [
             'name' => $request->name,
+            'phone' => $request->phone,
             'id_card_number' => $request->id_card_number,
             'id_card_issue_date' => $request->id_card_issue_date,
             'id_card_issue_place' => $request->id_card_issue_place,
             'permanent_address' => $request->permanent_address,
             'date_of_birth' => $request->date_of_birth,
             'gender' => $request->gender,
+            'signature' => $request->signature,
         ];
 
         // Xử lý upload ảnh CCCD
         if ($request->hasFile('id_card_image')) {
-            // Xóa ảnh cũ nếu có
-            if ($user->id_card_image && Storage::disk('public')->exists($user->id_card_image)) {
-                Storage::disk('public')->delete($user->id_card_image);
-            }
+            try {
+                Log::info('ID card image upload started', [
+                    'user_id' => $user->id,
+                    'file_name' => $request->file('id_card_image')->getClientOriginalName(),
+                    'file_size' => $request->file('id_card_image')->getSize(),
+                    'file_mime' => $request->file('id_card_image')->getMimeType(),
+                ]);
 
-            // Lưu ảnh mới
-            $image = $request->file('id_card_image');
-            $imageName = 'id_cards/' . $user->id . '_' . time() . '.' . $image->getClientOriginalExtension();
-            $image->storeAs('public', $imageName);
-            // Lưu đường dẫn tương đối để có thể lấy URL sau
-            $updateData['id_card_image'] = $imageName;
+                // Xóa ảnh cũ nếu có
+                if ($user->id_card_image) {
+                    // Xử lý cả trường hợp đường dẫn có hoặc không có prefix 'id_cards/'
+                    $oldPath = $user->id_card_image;
+                    if (strpos($oldPath, 'id_cards/') === 0) {
+                        // Đường dẫn đã đúng format
+                    } elseif (strpos($oldPath, '/storage/') === 0) {
+                        // Đường dẫn có prefix /storage/, cần loại bỏ
+                        $oldPath = str_replace('/storage/', '', $oldPath);
+                    }
+                    
+                    if (Storage::disk('public')->exists($oldPath)) {
+                        Storage::disk('public')->delete($oldPath);
+                        Log::info('Old ID card image deleted', ['path' => $oldPath]);
+                    } else {
+                        Log::warning('Old ID card image not found', ['path' => $oldPath]);
+                    }
+                }
+
+                // Đảm bảo thư mục id_cards tồn tại
+                $idCardsPath = storage_path('app/public/id_cards');
+                if (!file_exists($idCardsPath)) {
+                    mkdir($idCardsPath, 0755, true);
+                    Log::info('Created id_cards directory', ['path' => $idCardsPath]);
+                }
+
+                // Lưu ảnh mới
+                $image = $request->file('id_card_image');
+                $fileName = $user->id . '_' . time() . '.' . $image->getClientOriginalExtension();
+                
+                // Lưu file vào storage (tương tự như các controller khác)
+                $path = $image->store('id_cards', 'public');
+                Log::info('ID card image stored', [
+                    'file_name' => $fileName,
+                    'stored_path' => $path,
+                    'full_path' => storage_path('app/public/' . $path),
+                    'file_exists' => file_exists(storage_path('app/public/' . $path)),
+                ]);
+                
+                // Lưu đường dẫn tương đối để có thể lấy URL sau
+                $updateData['id_card_image'] = $path;
+            } catch (\Exception $e) {
+                Log::error('Error uploading ID card image', [
+                    'error' => $e->getMessage(),
+                    'trace' => $e->getTraceAsString(),
+                ]);
+                return back()->withErrors(['id_card_image' => 'Không thể upload ảnh: ' . $e->getMessage()])->withInput();
+            }
+        } else {
+            Log::info('No ID card image file in request', [
+                'has_file' => $request->hasFile('id_card_image'),
+                'all_files' => array_keys($request->allFiles()),
+            ]);
         }
 
         $user->update($updateData);

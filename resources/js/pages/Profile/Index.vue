@@ -225,6 +225,59 @@
                     {{ form.errors.permanent_address }}
                   </p>
                 </div>
+
+                <!-- Upload Ảnh CCCD -->
+                <div class="md:col-span-2">
+                  <label class="block text-sm font-medium text-gray-700 mb-2">
+                    Ảnh căn cước công dân
+                  </label>
+                  <div class="space-y-3">
+                    <!-- Preview ảnh hiện tại hoặc ảnh mới -->
+                    <div v-if="idCardImagePreview || user.id_card_image" class="relative">
+                      <div class="relative inline-block">
+                        <img
+                          :src="idCardImagePreview || user.id_card_image"
+                          alt="Ảnh CCCD"
+                          class="max-w-md w-full h-auto rounded-lg border-2 border-gray-300 object-contain"
+                          style="max-height: 400px;"
+                        />
+                        <button
+                          v-if="idCardImagePreview"
+                          type="button"
+                          @click="clearIdCardImage"
+                          class="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors"
+                          title="Xóa ảnh"
+                        >
+                          <XMarkIcon class="w-5 h-5" />
+                        </button>
+                      </div>
+                      <p v-if="user.id_card_image && !idCardImagePreview" class="mt-2 text-xs text-gray-500">
+                        Ảnh CCCD hiện tại
+                      </p>
+                      <p v-else-if="idCardImagePreview" class="mt-2 text-xs text-blue-600">
+                        Ảnh mới (chưa lưu)
+                      </p>
+                    </div>
+
+                    <!-- Input file -->
+                    <input
+                      ref="idCardImageInput"
+                      type="file"
+                      accept="image/*"
+                      @change="handleIdCardImageUpload"
+                      :class="[
+                        'block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-white hover:file:bg-secondary',
+                        form.errors.id_card_image ? 'border-red-500' : ''
+                      ]"
+                    />
+                    <p v-if="form.errors.id_card_image" class="mt-1 text-sm text-red-600">
+                      {{ form.errors.id_card_image }}
+                    </p>
+                    <p class="text-xs text-gray-500">
+                      Tải lên ảnh căn cước công dân (JPG, PNG, tối đa 5MB)
+                    </p>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -276,7 +329,7 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { useForm, Link } from '@inertiajs/vue3'
 import AppLayout from '@/layouts/AppLayout.vue'
 import SignaturePad from '@/components/ui/SignaturePad.vue'
@@ -284,6 +337,7 @@ import {
   UserIcon,
   IdentificationIcon,
   PencilIcon,
+  XMarkIcon,
 } from '@heroicons/vue/24/outline'
 
 const props = defineProps({
@@ -298,6 +352,9 @@ const today = computed(() => {
   return date.toISOString().split('T')[0]
 })
 
+const idCardImageInput = ref(null)
+const idCardImagePreview = ref(null)
+
 const form = useForm({
   name: props.user.name || '',
   phone: props.user.phone || '',
@@ -308,14 +365,65 @@ const form = useForm({
   date_of_birth: props.user.date_of_birth || '',
   gender: props.user.gender || '',
   signature: props.user.signature || '',
+  id_card_image: null,
+}, {
+  forceFormData: true,
 })
 
+// Xử lý upload ảnh CCCD
+const handleIdCardImageUpload = async (event) => {
+  const file = event.target.files[0]
+  if (!file) return
+  
+  // Kiểm tra loại file
+  if (!file.type.startsWith('image/')) {
+    return
+  }
+  
+  // Kiểm tra kích thước file (5MB)
+  if (file.size > 5 * 1024 * 1024) {
+    alert('Kích thước ảnh không được vượt quá 5MB')
+    if (idCardImageInput.value) {
+      idCardImageInput.value.value = ''
+    }
+    return
+  }
+  
+  // Hiển thị preview
+  const reader = new FileReader()
+  reader.onload = (e) => {
+    idCardImagePreview.value = e.target.result
+  }
+  reader.readAsDataURL(file)
+  
+  // Lưu file vào form
+  form.id_card_image = file
+}
+
+// Xóa ảnh preview
+const clearIdCardImage = () => {
+  idCardImagePreview.value = null
+  form.id_card_image = null
+  if (idCardImageInput.value) {
+    idCardImageInput.value.value = ''
+  }
+}
+
 const handleSubmit = () => {
-  form.put('/profile', {
+  form.post('/profile/personal-info', {
     preserveScroll: true,
+    forceFormData: true,
     onSuccess: () => {
+      // Reset preview sau khi submit thành công
+      idCardImagePreview.value = null
+      if (idCardImageInput.value) {
+        idCardImageInput.value.value = ''
+      }
       // Reload to get updated user data
       window.location.reload()
+    },
+    onError: (errors) => {
+      console.error('Form errors:', errors)
     },
   })
 }
