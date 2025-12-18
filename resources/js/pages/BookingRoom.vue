@@ -494,13 +494,6 @@
                 >
                   <XMarkIcon class="w-5 h-5" />
                 </button>
-                <button
-                  type="button"
-                  @click="openCropModal"
-                  class="absolute bottom-2 right-2 px-3 py-1.5 bg-primary text-white rounded-lg hover:bg-secondary text-sm font-medium"
-                >
-                  Chọn vùng QR code
-                </button>
               </div>
               <div v-else-if="user?.id_card_image" class="relative">
                 <img
@@ -517,14 +510,11 @@
                 @change="handleIdCardImageUpload"
                 class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-white hover:file:bg-secondary"
               />
-              <p v-if="qrReadingStatus" class="text-sm" :class="qrReadingStatus.type === 'success' ? 'text-green-600' : qrReadingStatus.type === 'error' ? 'text-red-600' : 'text-yellow-600'">
-                {{ qrReadingStatus?.message }}
-              </p>
               <p v-if="personalInfoForm.errors.id_card_image" class="mt-1 text-sm text-red-600">
                 {{ personalInfoForm.errors.id_card_image }}
               </p>
               <p class="text-xs text-gray-500">
-                Tải lên ảnh căn cước công dân. Sau khi tải lên, nhấn "Chọn vùng QR code" để chọn vùng có QR code.
+                Tải lên ảnh căn cước công dân.
               </p>
             </div>
           </div>
@@ -671,100 +661,14 @@
     </div>
   </div>
 
-  <!-- Crop QR Modal -->
-  <div
-    v-if="showCropModal"
-    class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
-    @click.self="closeCropModal"
-  >
-    <div class="bg-white rounded-lg p-6 max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
-      <div class="flex items-center justify-between mb-4">
-        <h3 class="text-xl font-bold text-secondary">Chọn vùng QR code</h3>
-        <button
-          type="button"
-          @click="closeCropModal"
-          class="p-1 hover:bg-gray-100 rounded"
-        >
-          <XMarkIcon class="w-6 h-6" />
-        </button>
-      </div>
-      
-      <div class="mb-4">
-        <p class="text-sm text-gray-600 mb-2">
-          Kéo để chọn vùng chứa QR code trên ảnh CCCD
-        </p>
-        <div class="border-2 border-gray-300 rounded-lg overflow-hidden" style="max-height: 70vh; min-height: 400px;">
-          <Cropper
-            ref="cropper"
-            :src="cropImageSrc"
-            :stencil-props="{
-              aspectRatio: 1,
-              resizable: true,
-              movable: true,
-            }"
-            class="cropper"
-            style="max-height: 70vh;"
-          />
-        </div>
-      </div>
-      
-      <div class="flex space-x-3">
-        <button
-          type="button"
-          @click="closeCropModal"
-          class="flex-1 btn-outline"
-        >
-          Hủy
-        </button>
-        <button
-          type="button"
-          @click="readQRFromSelectedRegion"
-          class="flex-1 btn-primary"
-        >
-          Đọc QR code
-        </button>
-      </div>
-    </div>
-  </div>
   </AppLayout>
 </template>
-
-<style scoped>
-.cropper {
-  height: 70vh;
-  min-height: 400px;
-  background: #f3f4f6;
-}
-</style>
 
 <script setup>
 import { ref, computed, watch, onMounted, onUnmounted, nextTick } from 'vue'
 import { router, useForm as useInertiaForm, Link } from '@inertiajs/vue3'
 import { useForm, useField } from 'vee-validate'
 import * as yup from 'yup'
-import { Cropper } from 'vue-advanced-cropper'
-import 'vue-advanced-cropper/dist/style.css'
-// Dynamic import để tránh lỗi optimize dep
-let BrowserQRCodeReader, DecodeHintType, BarcodeFormat, BinaryBitmap, HybridBinarizer, RGBLuminanceSource
-const loadZXing = async () => {
-  if (!BrowserQRCodeReader) {
-    const zxing = await import('@zxing/library')
-    BrowserQRCodeReader = zxing.BrowserQRCodeReader
-    DecodeHintType = zxing.DecodeHintType
-    BarcodeFormat = zxing.BarcodeFormat
-    BinaryBitmap = zxing.BinaryBitmap
-    HybridBinarizer = zxing.HybridBinarizer
-    RGBLuminanceSource = zxing.RGBLuminanceSource
-  }
-  return {
-    BrowserQRCodeReader,
-    DecodeHintType,
-    BarcodeFormat,
-    BinaryBitmap,
-    HybridBinarizer,
-    RGBLuminanceSource
-  }
-}
 import AppLayout from '@/layouts/AppLayout.vue'
 import { useAuth } from '@/composables/useAuth'
 import RoomCard from '@/components/booking/RoomCard.vue'
@@ -800,10 +704,6 @@ const showImageSlider = ref(false)
 const sliderImageIndex = ref(0)
 const idCardImageInput = ref(null)
 const idCardImagePreview = ref(null)
-const qrReadingStatus = ref(null)
-const showCropModal = ref(false)
-const cropImageSrc = ref(null)
-const cropper = ref(null)
 
 // Kiểm tra xem user có đầy đủ thông tin cá nhân không
 const hasCompletePersonalInfo = computed(() => {
@@ -1258,286 +1158,6 @@ const handleBookingSubmit = (event) => {
   submitHandler(event)
 }
 
-// Parse QR data từ format: Số cccd|Tên|Ngày sinh|Giới tính|Địa chỉ|Ngày cấp
-const parseQRData = (qrData) => {
-  const parts = qrData.split('|')
-  if (parts.length !== 6) {
-    return null
-  }
-  
-  return {
-    id_card_number: parts[0].trim(),
-    name: parts[1].trim(),
-    date_of_birth: formatDateFromQR(parts[2].trim()),
-    gender: mapGenderFromQR(parts[3].trim()),
-    permanent_address: parts[4].trim(),
-    id_card_issue_date: formatDateFromQR(parts[5].trim()),
-  }
-}
-
-// Format ngày từ QR (ddmmyyyy) sang yyyy-mm-dd
-const formatDateFromQR = (dateStr) => {
-  if (dateStr.length === 8) {
-    // Format: ddmmyyyy
-    const day = dateStr.substring(0, 2)
-    const month = dateStr.substring(2, 4)
-    const year = dateStr.substring(4, 8)
-    return `${year}-${month}-${day}`
-  }
-  return dateStr
-}
-
-// Map giới tính từ QR (Nam/Nữ) sang (male/female)
-const mapGenderFromQR = (genderStr) => {
-  const gender = genderStr.toLowerCase()
-  if (gender.includes('nam') || gender === 'nam') {
-    return 'male'
-  } else if (gender.includes('nữ') || gender === 'nữ' || gender.includes('nu')) {
-    return 'female'
-  }
-  return 'other'
-}
-
-// Chuyển ảnh sang grayscale và tăng cường tương phản
-const convertToGrayscaleWithContrast = (imageData, contrastFactor = 1.5) => {
-  const data = new Uint8ClampedArray(imageData.data)
-  
-  for (let i = 0; i < data.length; i += 4) {
-    const r = data[i]
-    const g = data[i + 1]
-    const b = data[i + 2]
-    
-    // Chuyển sang grayscale
-    let gray = Math.round(0.299 * r + 0.587 * g + 0.114 * b)
-    
-    // Tăng cường tương phản
-    gray = ((gray - 128) * contrastFactor) + 128
-    gray = Math.max(0, Math.min(255, gray))
-    
-    // Gán lại cho RGB (grayscale)
-    data[i] = gray
-    data[i + 1] = gray
-    data[i + 2] = gray
-    // Alpha giữ nguyên
-  }
-  
-  return new ImageData(data, imageData.width, imageData.height)
-}
-
-// Phân ngưỡng (thresholding) - chuyển sang ảnh nhị phân đen trắng
-const applyThreshold = (imageData, threshold = 128) => {
-  const data = new Uint8ClampedArray(imageData.data)
-  
-  for (let i = 0; i < data.length; i += 4) {
-    const gray = data[i] // Đã là grayscale
-    
-    // Phân ngưỡng: nếu > threshold thì trắng (255), ngược lại đen (0)
-    const binary = gray > threshold ? 255 : 0
-    
-    data[i] = binary
-    data[i + 1] = binary
-    data[i + 2] = binary
-    // Alpha giữ nguyên
-  }
-  
-  return new ImageData(data, imageData.width, imageData.height)
-}
-
-// Tự động tính threshold bằng Otsu's method
-const calculateOtsuThreshold = (imageData) => {
-  const data = imageData.data
-  const histogram = new Array(256).fill(0)
-  
-  // Tính histogram
-  for (let i = 0; i < data.length; i += 4) {
-    histogram[data[i]]++
-  }
-  
-  // Tính tổng số pixel
-  const total = data.length / 4
-  
-  // Tính Otsu threshold
-  let sum = 0
-  for (let i = 0; i < 256; i++) {
-    sum += i * histogram[i]
-  }
-  
-  let sumB = 0
-  let wB = 0
-  let wF = 0
-  let maxVariance = 0
-  let threshold = 0
-  
-  for (let i = 0; i < 256; i++) {
-    wB += histogram[i]
-    if (wB === 0) continue
-    
-    wF = total - wB
-    if (wF === 0) break
-    
-    sumB += i * histogram[i]
-    const mB = sumB / wB
-    const mF = (sum - sumB) / wF
-    
-    const variance = wB * wF * (mB - mF) * (mB - mF)
-    
-    if (variance > maxVariance) {
-      maxVariance = variance
-      threshold = i
-    }
-  }
-  
-  return threshold
-}
-
-// Đọc QR code từ vùng đã chọn bằng zxing
-const readQRFromSelectedRegion = async () => {
-  if (!cropper.value) {
-    qrReadingStatus.value = {
-      type: 'error',
-      message: 'Vui lòng chọn vùng chứa QR code'
-    }
-    return
-  }
-  
-  qrReadingStatus.value = {
-    type: 'info',
-    message: 'Đang đọc QR code...'
-  }
-  
-  try {
-    // Lấy vùng đã chọn từ cropper
-    const result = cropper.value.getResult()
-    
-    if (!result) {
-      qrReadingStatus.value = {
-        type: 'error',
-        message: 'Vui lòng chọn vùng chứa QR code'
-      }
-      return
-    }
-    
-    // Tạo canvas từ ảnh gốc và crop theo coordinates
-    const img = new Image()
-    img.crossOrigin = 'anonymous'
-    img.src = cropImageSrc.value
-    
-    await new Promise((resolve, reject) => {
-      img.onload = resolve
-      img.onerror = reject
-    })
-    
-    // Lấy coordinates từ result
-    const coordinates = result.coordinates || {}
-    const left = Math.round(coordinates.left || 0)
-    const top = Math.round(coordinates.top || 0)
-    const width = Math.round(coordinates.width || img.width)
-    const height = Math.round(coordinates.height || img.height)
-    
-    // Tạo canvas và crop vùng đã chọn
-    const sourceCanvas = document.createElement('canvas')
-    const tempCtx = sourceCanvas.getContext('2d')
-    sourceCanvas.width = width
-    sourceCanvas.height = height
-    
-    // Crop ảnh theo vùng đã chọn
-    tempCtx.drawImage(
-      img,
-      left,
-      top,
-      width,
-      height,
-      0,
-      0,
-      width,
-      height
-    )
-    
-    // Lấy image data từ canvas đã crop
-    const ctx = sourceCanvas.getContext('2d')
-    const originalImageData = ctx.getImageData(0, 0, sourceCanvas.width, sourceCanvas.height)
-    
-    // Bước 1: Chuyển sang grayscale và tăng cường tương phản
-    const grayscaleData = convertToGrayscaleWithContrast(originalImageData, 2.0)
-    
-    // Bước 2: Tính threshold tự động bằng Otsu
-    const threshold = calculateOtsuThreshold(grayscaleData)
-    
-    // Bước 3: Áp dụng phân ngưỡng
-    const thresholdedData = applyThreshold(grayscaleData, threshold)
-    
-    // Tạo canvas mới với ảnh đã xử lý
-    const processedCanvas = document.createElement('canvas')
-    const processedCtx = processedCanvas.getContext('2d')
-    processedCanvas.width = sourceCanvas.width
-    processedCanvas.height = sourceCanvas.height
-    processedCtx.putImageData(thresholdedData, 0, 0)
-    
-    // Load zxing library với các classes cần thiết
-    const zxing = await loadZXing()
-    const codeReader = new zxing.BrowserQRCodeReader()
-    
-    // Tạo hints để tăng khả năng đọc QR
-    const hints = new Map()
-    hints.set(zxing.DecodeHintType.TRY_HARDER, true)
-    hints.set(zxing.DecodeHintType.POSSIBLE_FORMATS, [zxing.BarcodeFormat.QR_CODE])
-    
-    // Lấy image data từ processed canvas để đọc QR
-    const processedImageData = processedCtx.getImageData(0, 0, processedCanvas.width, processedCanvas.height)
-    
-    // Tạo RGBLuminanceSource từ image data
-    const luminanceSource = new zxing.RGBLuminanceSource(
-      processedImageData.data,
-      processedCanvas.width,
-      processedCanvas.height
-    )
-    
-    // Tạo BinaryBitmap với HybridBinarizer
-    const binaryBitmap = new zxing.BinaryBitmap(new zxing.HybridBinarizer(luminanceSource))
-    
-    // Đọc QR code với hints
-    result = codeReader.decode(binaryBitmap, hints)
-    
-    if (result && result.getText()) {
-      const qrData = result.getText()
-      const parsedData = parseQRData(qrData)
-      
-      if (parsedData) {
-        // Điền thông tin vào form
-        personalInfoForm.name = parsedData.name
-        personalInfoForm.id_card_number = parsedData.id_card_number
-        personalInfoForm.date_of_birth = parsedData.date_of_birth
-        personalInfoForm.gender = parsedData.gender
-        personalInfoForm.permanent_address = parsedData.permanent_address
-        personalInfoForm.id_card_issue_date = parsedData.id_card_issue_date
-        
-        qrReadingStatus.value = {
-          type: 'success',
-          message: 'Đã đọc QR code thành công và điền thông tin tự động!'
-        }
-        
-        closeCropModal()
-      } else {
-        qrReadingStatus.value = {
-          type: 'error',
-          message: 'Không thể parse dữ liệu QR code. Vui lòng kiểm tra lại ảnh.'
-        }
-      }
-    } else {
-      qrReadingStatus.value = {
-        type: 'error',
-        message: 'Không thể đọc QR code từ vùng đã chọn. Vui lòng thử chọn vùng khác.'
-      }
-    }
-  } catch (error) {
-    console.error('Error reading QR code:', error)
-    qrReadingStatus.value = {
-      type: 'error',
-      message: error.message || 'Không thể đọc QR code. Vui lòng thử lại.'
-    }
-  }
-}
-
 // Xử lý upload ảnh CCCD
 const handleIdCardImageUpload = async (event) => {
   const file = event.target.files[0]
@@ -1545,10 +1165,6 @@ const handleIdCardImageUpload = async (event) => {
   
   // Kiểm tra loại file
   if (!file.type.startsWith('image/')) {
-    qrReadingStatus.value = {
-      type: 'error',
-      message: 'Vui lòng chọn file ảnh hợp lệ'
-    }
     return
   }
   
@@ -1556,7 +1172,6 @@ const handleIdCardImageUpload = async (event) => {
   const reader = new FileReader()
   reader.onload = (e) => {
     idCardImagePreview.value = e.target.result
-    qrReadingStatus.value = null
   }
   reader.readAsDataURL(file)
   
@@ -1564,31 +1179,10 @@ const handleIdCardImageUpload = async (event) => {
   personalInfoForm.id_card_image = file
 }
 
-// Mở modal chọn vùng QR
-const openCropModal = () => {
-  if (!idCardImagePreview.value) {
-    qrReadingStatus.value = {
-      type: 'error',
-      message: 'Vui lòng tải ảnh lên trước'
-    }
-    return
-  }
-  
-  showCropModal.value = true
-  cropImageSrc.value = idCardImagePreview.value
-}
-
-// Đóng modal
-const closeCropModal = () => {
-  showCropModal.value = false
-  cropImageSrc.value = null
-}
-
 // Xóa ảnh preview
 const clearIdCardImage = () => {
   idCardImagePreview.value = null
   personalInfoForm.id_card_image = null
-  qrReadingStatus.value = null
   if (idCardImageInput.value) {
     idCardImageInput.value.value = ''
   }
@@ -1695,11 +1289,3 @@ onUnmounted(() => {
   document.body.style.overflow = ''
 })
 </script>
-
-<style scoped>
-.cropper {
-  height: 70vh;
-  min-height: 400px;
-  background: #f3f4f6;
-}
-</style>
