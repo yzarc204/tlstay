@@ -25,18 +25,6 @@
           Đăng nhập
         </Link>
         
-        <!-- Wallet Balance (only for customers) -->
-        <Link
-          v-if="authStore.isAuthenticated && !isManager"
-          href="/wallet"
-          class="flex items-center space-x-2 px-4 py-2 bg-white/10 hover:bg-white/20 rounded-lg transition-all"
-          title="Ví của tôi"
-        >
-          <span class="font-medium">Ví:</span>
-          <span class="font-medium">{{ formatWalletNumber(walletBalance) }}</span>
-          <CircleStackIcon class="w-4 h-4" />
-        </Link>
-        
         <!-- User Dropdown -->
         <div v-if="authStore.isAuthenticated" class="relative user-dropdown">
           <button
@@ -81,15 +69,6 @@
             >
               <HomeIcon class="w-5 h-5" />
               <span>Phòng của tôi</span>
-            </Link>
-            <Link
-              v-if="!isManager"
-              href="/wallet"
-              @click="userDropdownOpen = false"
-              class="flex items-center space-x-2 px-4 py-2 text-gray-700 hover:bg-gray-100 transition-colors"
-            >
-              <BanknotesIcon class="w-5 h-5" />
-              <span>Ví của tôi</span>
             </Link>
             <Link
               href="/invoices"
@@ -203,15 +182,6 @@
                 <div class="flex-1 min-w-0">
                   <p class="font-semibold text-gray-900 truncate">{{ authStore.currentUser?.name }}</p>
                   <p class="text-sm text-gray-500 truncate">{{ authStore.currentUser?.email }}</p>
-                  <Link
-                    v-if="!isManager"
-                    href="/wallet"
-                    @click="menuOpen = false"
-                    class="flex items-center space-x-1 text-sm text-primary hover:text-primary-700 mt-1"
-                  >
-                    <span>Ví: {{ formatWalletNumber(walletBalance) }}</span>
-                    <CircleStackIcon class="w-3 h-3" />
-                  </Link>
                 </div>
               </div>
 
@@ -244,16 +214,6 @@
                 >
                   <HomeIcon class="w-5 h-5 text-primary" />
                   <span class="font-medium">Phòng của tôi</span>
-                </Link>
-                <Link
-                  v-if="!isManager"
-                  href="/wallet"
-                  @click="menuOpen = false"
-                  :class="['menu-item flex items-center space-x-3 w-full py-3 px-4 text-gray-700 hover:bg-gray-100 rounded-lg transition-all duration-200', { 'menu-item-animated': menuOpen }]"
-                  :style="{ '--delay': '0.2s' }"
-                >
-                  <BanknotesIcon class="w-5 h-5 text-primary" />
-                  <span class="font-medium">Ví của tôi</span>
                 </Link>
                 <Link
                   href="/invoices"
@@ -299,8 +259,6 @@ import {
   UserIcon,
   DocumentTextIcon,
   ArrowRightOnRectangleIcon,
-  BanknotesIcon,
-  CircleStackIcon,
 } from '@heroicons/vue/24/outline'
 
 const authStore = useAuthStore()
@@ -308,11 +266,6 @@ const page = usePage()
 const { isManager } = useAuth()
 const menuOpen = ref(false)
 const userDropdownOpen = ref(false)
-
-// Get wallet balance from page props
-const walletBalance = computed(() => {
-  return page.props?.wallet?.balance || 0
-})
 
 // Get site name from settings
 const siteName = computed(() => {
@@ -329,22 +282,6 @@ const logoShowText = computed(() => {
   const value = page.props?.siteSettings?.site_logo_show_text
   return value === '1' || value === 'true' || value === true || value === 1
 })
-
-// Format wallet balance number only (without "xu" suffix)
-const formatWalletNumber = (amount) => {
-  if (!amount && amount !== 0) return '0'
-  // 1 xu = 1 đồng, so no conversion needed
-  const xu = Math.round(amount)
-  return new Intl.NumberFormat('vi-VN').format(xu)
-}
-
-// Format wallet balance in xu (1 xu = 1 đồng)
-const formatWallet = (amount) => {
-  if (!amount && amount !== 0) return '0 xu'
-  // 1 xu = 1 đồng, so no conversion needed
-  const xu = Math.round(amount)
-  return new Intl.NumberFormat('vi-VN').format(xu) + ' xu'
-}
 
 // Format price helper
 const formatPrice = (price) => {

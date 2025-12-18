@@ -88,21 +88,6 @@ class User extends Authenticatable
         return $this->hasMany(Invoice::class);
     }
 
-    /**
-     * Get the wallet for the user.
-     */
-    public function wallet()
-    {
-        return $this->hasOne(Wallet::class);
-    }
-
-    /**
-     * Get wallet transactions for the user.
-     */
-    public function walletTransactions(): HasMany
-    {
-        return $this->hasMany(WalletTransaction::class);
-    }
 
 
     /**

@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\Booking;
-use App\Models\Wallet;
 use App\Models\CompanyInformation;
 use App\Helpers\VietQRHelper;
 use Illuminate\Http\Request;
@@ -118,72 +117,4 @@ class PaymentController extends Controller
             ->with('success', 'Thanh toán thành công! Đơn đặt phòng của bạn đã được xác nhận.');
     }
 
-    /**
-     * Pay invoice using wallet
-     */
-    public function payInvoiceWithWallet(Request $request, $invoiceId)
-    {
-        $user = Auth::user();
-        
-        if (!$user) {
-            return back()->with('error', 'Vui lòng đăng nhập để thanh toán.');
-        }
-
-        $invoice = \App\Models\Invoice::where('id', $invoiceId)
-            ->where('user_id', $user->id)
-            ->firstOrFail();
-
-        // Check if invoice is already paid
-        if ($invoice->status === 'paid') {
-            return back()->with('info', 'Hóa đơn này đã được thanh toán.');
-        }
-
-        // Calculate total amount
-        $totalAmount = (float) (
-            $invoice->amount +
-            $invoice->electricity_amount +
-            $invoice->water_amount +
-            ($invoice->other_fees ?? 0)
-        );
-
-        // Get or create wallet
-        $wallet = Wallet::getOrCreateForUser($user->id);
-
-        // Check if wallet has enough balance
-        if ($wallet->balance < $totalAmount) {
-            return back()->with('error', 'Số dư ví không đủ để thanh toán. Số dư hiện tại: ' . number_format($wallet->balance, 0, ',', '.') . ' ₫');
-        }
-
-        try {
-            // Deduct from wallet
-            $wallet->debit(
-                $totalAmount,
-                "Thanh toán hóa đơn tháng {$invoice->month}/{$invoice->year}",
-                'Invoice',
-                $invoice->id
-            );
-
-            // Update invoice status
-            $invoice->update([
-                'status' => 'paid',
-                'paid_at' => now(),
-            ]);
-
-            Log::info('Invoice paid with wallet', [
-                'invoice_id' => $invoiceId,
-                'user_id' => $user->id,
-                'amount' => $totalAmount,
-                'wallet_balance_after' => $wallet->balance,
-            ]);
-
-            return back()->with('success', 'Thanh toán hóa đơn thành công bằng ví!');
-        } catch (\Exception $e) {
-            Log::error('Error paying invoice with wallet', [
-                'invoice_id' => $invoiceId,
-                'error' => $e->getMessage(),
-            ]);
-
-            return back()->with('error', 'Có lỗi xảy ra khi thanh toán: ' . $e->getMessage());
-        }
-    }
 }

@@ -53,12 +53,6 @@ Route::middleware('auth')->group(function () {
     Route::get('/contract/{booking}/sign', [\App\Http\Controllers\ContractController::class, 'showSign'])->name('contract.sign.show');
     Route::post('/contract/{booking}/sign', [\App\Http\Controllers\ContractController::class, 'sign'])->name('contract.sign');
     Route::get('/my-rentals', [RentalHistoryController::class, 'index'])->name('my-rentals');
-    
-    // Wallet Routes
-    Route::get('/wallet', [\App\Http\Controllers\WalletController::class, 'index'])->name('wallet.index');
-    
-    // Invoice Payment Routes
-    Route::post('/payment/invoice/{invoiceId}/wallet', [\App\Http\Controllers\PaymentController::class, 'payInvoiceWithWallet'])->name('payment.invoice.wallet');
 });
 
 // Profile Routes

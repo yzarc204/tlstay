@@ -71,15 +71,9 @@ class RentalHistoryController extends Controller
                 ];
             });
 
-        // Get wallet balance
-        $wallet = \App\Models\Wallet::getOrCreateForUser($user->id);
-
         return Inertia::render('RentalHistory', [
             'bookings' => $bookings,
             'invoices' => $invoices,
-            'wallet' => [
-                'balance' => (float) $wallet->balance,
-            ],
         ]);
     }
 

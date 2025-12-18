@@ -1,0 +1,55 @@
+---
+description: Project concept
+alwaysApply: true
+---
+# THANG LONG STAY Short and Long-term Room Rental Website
+
+## Idea
+- THANG LONG STAY website is a service for renting rooms on a daily/weekly/monthly basis. Customers can easily search, refer to reviews, rent, and pay accommodation fees directly on the website. The website targets students looking for rental housing. The interface is user-friendly and suitable for Gen Z.
+
+## Technologies Used
+- Backend: Laravel
+- Frontend: Inertia + Vue 3 + Tailwind + Pinia
+- Database: MySQL
+- Payment gate: VNPAY sandbox (for testing)
+
+## Dormitory and Room Management Module
+- Managers can add/edit their list of dormitories and rooms on the website.
+- Each dormitory includes the following information: dormitory name, address, coordinates, images, dormitory description, amenities provided (water heater, air conditioner, kitchen...), distance to the center (Thang Long University).
+- Each dormitory has multiple floors, each floor has many rooms with customizable layouts. Each room has different rental prices. The base price is the daily rental price; when customers rent by week/month, a discount of 5 - 10% is applied.
+- For monthly rentals, the rent does not include electricity and water services. Managers will add these service prices for their rooms.
+- Managers have the right to edit the current tenant and the rental start/end dates of the room.
+
+## Contract Management Module
+- Allows managers to upload rental contract templates in .blade.php file format.
+
+## Promotion Management Module
+- Managers can add simple vouchers: applicable for a minimum order amount, percentage discount, maximum discount percentage, number of times each account can use, and voucher validity period.
+- Statistics on usage counts of each voucher.
+
+## Banner, Slider, Popup Promotion Management Module
+- Managers have the right to manage banners, sliders, and promotional popups on the website.
+
+## Account Management Module
+- Managers can view information of all accounts in the system.
+- Managers can ban an account with a reason for banning.
+
+## User Authentication Module
+- The system has 2 user roles: manager and customer.
+- Users must register an account with the following information: Email, password, phone number.
+- Users must provide additional information to use the room rental feature: permanent address, ID card number, date of birth, gender.
+- The website has separate login pages for managers and users.
+
+## Dormitory/Room Search Module
+- Customers can search and filter dormitories by price, distance, amenities, and reviews.
+- Customers can sort dormitories based on rental frequency, price, and rating.
+
+## Room Rental Module
+- Customers can rent rooms through the following flow: select dormitory -> select room -> select rental period -> add list of renters (if there are 2 or more people).
+- For example, if a customer rents a room for 50 days, the rental price will be calculated as: 1 month rent + 2 weeks rent + 6 days rent.
+
+## Dormitory and Customer Invoice Management Module
+- Allows customers to view and edit the list of people in the rented room.
+- Allows customers to view and pay service bills.
+- Allows customers to view rental history.
+- Rate rented dormitories from 1 to 5 stars with comments and images.

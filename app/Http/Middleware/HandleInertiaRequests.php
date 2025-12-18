@@ -37,13 +37,6 @@ class HandleInertiaRequests extends Middleware
     public function share(Request $request): array
     {
         $user = $request->user();
-        
-        // Get wallet balance if user is authenticated
-        $walletBalance = 0;
-        if ($user) {
-            $wallet = \App\Models\Wallet::where('user_id', $user->id)->first();
-            $walletBalance = $wallet ? (float) $wallet->balance : 0;
-        }
 
         // Get site settings
         $siteSettings = \App\Models\Setting::getAll();
@@ -70,9 +63,6 @@ class HandleInertiaRequests extends Middleware
                     'gender' => $user->gender,
                     'signature' => $user->signature,
                 ] : null,
-            ],
-            'wallet' => [
-                'balance' => $walletBalance,
             ],
             'siteSettings' => $siteSettings,
             'socialLinks' => $socialLinks->map(function ($link) {

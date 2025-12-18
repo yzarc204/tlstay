@@ -112,15 +112,6 @@
           <!-- Invoices Sidebar -->
           <div class="lg:col-span-1">
             <div class="card p-6 sticky top-24 space-y-6">
-              <!-- Wallet Balance -->
-              <div class="p-4 bg-gradient-to-br from-primary to-secondary text-white rounded-lg">
-                <h3 class="text-sm font-semibold mb-2 opacity-90">Số dư ví</h3>
-                <p class="text-2xl font-bold">{{ formatWallet(wallet?.balance || 0) }}</p>
-                <Link href="/wallet" class="text-xs opacity-75 hover:opacity-100 underline mt-2 inline-block">
-                  Xem chi tiết
-                </Link>
-              </div>
-
               <div>
                 <h2 class="text-xl font-bold text-secondary mb-6">Hóa đơn tháng này</h2>
 
@@ -175,16 +166,6 @@
                     }}</span>
                   </div>
 
-                  <div v-if="invoice.status !== 'paid'" class="mt-3 space-y-2">
-                    <button
-                      @click="payWithWallet(invoice.id)"
-                      :disabled="payingInvoiceId === invoice.id"
-                      class="w-full btn-primary text-sm py-2 disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      <span v-if="payingInvoiceId !== invoice.id">Thanh toán bằng ví</span>
-                      <span v-else>Đang xử lý...</span>
-                    </button>
-                  </div>
                 </div>
               </div>
 
@@ -231,23 +212,6 @@ import {
   DocumentTextIcon,
 } from '@heroicons/vue/24/outline'
 
-const payingInvoiceId = ref(null)
-
-const payWithWallet = (invoiceId) => {
-  if (!confirm('Bạn có chắc chắn muốn thanh toán hóa đơn này bằng ví?')) {
-    return
-  }
-
-  payingInvoiceId.value = invoiceId
-  
-  router.post(`/payment/invoice/${invoiceId}/wallet`, {}, {
-    preserveScroll: true,
-    onFinish: () => {
-      payingInvoiceId.value = null
-    },
-  })
-}
-
 const props = defineProps({
   bookings: {
     type: Array,
@@ -256,10 +220,6 @@ const props = defineProps({
   invoices: {
     type: Array,
     default: () => [],
-  },
-  wallet: {
-    type: Object,
-    default: () => ({ balance: 0 }),
   },
 })
 
@@ -285,14 +245,6 @@ const unpaidInvoicesCount = computed(() => {
 })
 
 // Helper functions
-// Format wallet balance in xu (1 xu = 1 đồng)
-const formatWallet = (amount) => {
-  if (!amount && amount !== 0) return '0 xu'
-  // 1 xu = 1 đồng, so no conversion needed
-  const xu = Math.round(amount)
-  return new Intl.NumberFormat('vi-VN').format(xu) + ' xu'
-}
-
 const formatPrice = (price) => {
   if (!price && price !== 0) return '0 ₫'
   return new Intl.NumberFormat('vi-VN', {
