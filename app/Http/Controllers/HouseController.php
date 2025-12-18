@@ -3,18 +3,50 @@
 namespace App\Http\Controllers;
 
 use App\Models\House;
+use App\Models\Address;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
 class HouseController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $houses = House::with(['owner', 'rooms.bookings'])
+        $query = House::with(['owner', 'rooms.bookings', 'wardAddress', 'streetAddress'])
             ->withCount([
                 'rooms as total_rooms_count',
-            ])
-            ->get()
+            ]);
+
+        // Filter by ward (phường)
+        if ($request->filled('ward')) {
+            $wardName = $request->ward;
+            $query->whereHas('wardAddress', function ($q) use ($wardName) {
+                $q->where('name', 'like', "%{$wardName}%");
+            });
+        }
+
+        // Filter by street (đường)
+        if ($request->filled('street')) {
+            $streetName = $request->street;
+            $query->whereHas('streetAddress', function ($q) use ($streetName) {
+                $q->where('name', 'like', "%{$streetName}%");
+            });
+        }
+
+        // Filter by price range
+        if ($request->filled('priceRange')) {
+            $priceRange = $request->priceRange;
+            if (strpos($priceRange, '+') !== false) {
+                // Range format: "10000000+" - Trên 10 triệu/ngày
+                $minPrice = (float) str_replace('+', '', $priceRange);
+                $query->where('price_per_day', '>=', $minPrice);
+            } elseif (strpos($priceRange, '-') !== false) {
+                // Range format: "2000000-5000000" or "0-2000000"
+                [$minPrice, $maxPrice] = explode('-', $priceRange);
+                $query->whereBetween('price_per_day', [(float) $minPrice, (float) $maxPrice]);
+            }
+        }
+
+        $houses = $query->get()
             ->map(function ($house) {
                 // Calculate available rooms count based on effective status
                 $availableRoomsCount = $house->rooms->filter(function ($room) {
@@ -33,12 +65,41 @@ class HouseController extends Controller
                     'rating' => (float) ($house->rating ?? 0),
                     'reviews' => $house->reviews ?? 0,
                     'amenities' => $house->amenities ?? [],
+                    'ward_name' => $house->wardAddress ? $house->wardAddress->name : null,
+                    'street_name' => $house->streetAddress ? $house->streetAddress->name : null,
                 ];
             })
             ->values();
 
+        // Get all wards and streets for filter dropdowns
+        $wards = Address::where('type', 'ward')
+            ->orderBy('name')
+            ->get(['id', 'name'])
+            ->map(function ($ward) {
+                return [
+                    'id' => $ward->id,
+                    'name' => $ward->name,
+                ];
+            });
+
+        $streets = Address::where('type', 'street')
+            ->with('parent')
+            ->orderBy('name')
+            ->get(['id', 'name', 'parent_id'])
+            ->map(function ($street) {
+                return [
+                    'id' => $street->id,
+                    'name' => $street->name,
+                    'ward_id' => $street->parent_id,
+                    'ward_name' => $street->parent ? $street->parent->name : null,
+                ];
+            });
+
         return Inertia::render('HouseList', [
             'houses' => $houses,
+            'filters' => $request->only(['ward', 'street', 'priceRange']),
+            'wards' => $wards,
+            'streets' => $streets,
         ]);
     }
 

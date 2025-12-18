@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\House;
 use App\Models\Banner;
+use App\Models\Address;
 use Inertia\Inertia;
 
 class HomeController extends Controller
@@ -60,9 +61,35 @@ class HomeController extends Controller
             ];
         });
 
+        // Get all wards and streets for search dropdowns
+        $wards = Address::where('type', 'ward')
+            ->orderBy('name')
+            ->get(['id', 'name'])
+            ->map(function ($ward) {
+                return [
+                    'id' => $ward->id,
+                    'name' => $ward->name,
+                ];
+            });
+
+        $streets = Address::where('type', 'street')
+            ->with('parent')
+            ->orderBy('name')
+            ->get(['id', 'name', 'parent_id'])
+            ->map(function ($street) {
+                return [
+                    'id' => $street->id,
+                    'name' => $street->name,
+                    'ward_id' => $street->parent_id,
+                    'ward_name' => $street->parent ? $street->parent->name : null,
+                ];
+            });
+
         return Inertia::render('Home', [
             'featuredHouses' => $featuredHouses,
             'sliders' => $sliders,
+            'wards' => $wards,
+            'streets' => $streets,
         ]);
     }
 }

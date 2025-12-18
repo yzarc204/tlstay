@@ -154,34 +154,47 @@
           <div class="max-w-5xl mx-auto">
             <div class="bg-white rounded-2xl p-6 md:p-8 shadow-2xl">
               <div class="grid grid-cols-1 md:grid-cols-4 gap-4 md:gap-6">
-                <!-- Location -->
+                <!-- Ward (Phường) -->
                 <div class="relative">
-                  <label class="block text-sm font-semibold text-gray-700 mb-2">Địa điểm</label>
+                  <label class="block text-sm font-semibold text-gray-700 mb-2">Tên phường</label>
                   <div class="relative">
-                    <MapPinIcon class="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
-                    <input
-                      v-model="searchForm.location"
-                      type="text"
-                      placeholder="Nhập địa điểm"
-                      class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary focus:border-primary transition-all text-gray-900 placeholder-gray-400"
-                    />
+                    <MapPinIcon class="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 z-10" />
+                    <select
+                      v-model="searchForm.ward"
+                      class="w-full pl-10 pr-8 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary focus:border-primary transition-all text-gray-900 appearance-none bg-white cursor-pointer"
+                    >
+                      <option value="">Tất cả phường</option>
+                      <option
+                        v-for="ward in wards"
+                        :key="ward.id"
+                        :value="ward.name"
+                      >
+                        {{ ward.name }}
+                      </option>
+                    </select>
+                    <ChevronDownIcon class="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none z-10" />
                   </div>
                 </div>
 
-                <!-- Property Type -->
-                <div>
-                  <label class="block text-sm font-semibold text-gray-700 mb-2">Loại phòng</label>
+                <!-- Street (Đường) -->
+                <div class="relative">
+                  <label class="block text-sm font-semibold text-gray-700 mb-2">Tên đường</label>
                   <div class="relative">
+                    <MapPinIcon class="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 z-10" />
                     <select
-                      v-model="searchForm.type"
-                      class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary focus:border-primary transition-all text-gray-900 appearance-none bg-white cursor-pointer"
+                      v-model="searchForm.street"
+                      class="w-full pl-10 pr-8 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary focus:border-primary transition-all text-gray-900 appearance-none bg-white cursor-pointer"
                     >
-                      <option value="">Tất cả</option>
-                      <option value="house">Nhà trọ</option>
-                      <option value="apartment">Chung cư</option>
-                      <option value="villa">Biệt thự</option>
+                      <option value="">Tất cả đường</option>
+                      <option
+                        v-for="street in filteredStreets"
+                        :key="street.id"
+                        :value="street.name"
+                      >
+                        {{ street.name }}{{ street.ward_name ? ` (${street.ward_name})` : '' }}
+                      </option>
                     </select>
-                    <ChevronDownIcon class="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
+                    <ChevronDownIcon class="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none z-10" />
                   </div>
                 </div>
 
@@ -363,7 +376,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { Link, router } from '@inertiajs/vue3'
 import AppLayout from '@/layouts/AppLayout.vue'
 import HouseCard from '@/components/house/HouseCard.vue'
@@ -384,6 +397,14 @@ const props = defineProps({
     default: () => [],
   },
   sliders: {
+    type: Array,
+    default: () => [],
+  },
+  wards: {
+    type: Array,
+    default: () => [],
+  },
+  streets: {
     type: Array,
     default: () => [],
   },
@@ -439,20 +460,42 @@ onUnmounted(() => {
 })
 
 const searchForm = ref({
-  location: '',
-  type: '',
+  ward: '',
+  street: '',
   priceRange: '',
+})
+
+// Find selected ward ID
+const selectedWardId = computed(() => {
+  if (!searchForm.value.ward) {
+    return null
+  }
+  const ward = props.wards.find(w => w.name === searchForm.value.ward)
+  return ward ? ward.id : null
+})
+
+// Filter streets based on selected ward
+const filteredStreets = computed(() => {
+  if (!selectedWardId.value) {
+    return props.streets
+  }
+  return props.streets.filter(street => street.ward_id === selectedWardId.value)
+})
+
+// Watch ward change to reset street selection
+watch(() => searchForm.value.ward, () => {
+  searchForm.value.street = ''
 })
 
 const handleSearch = () => {
   const params = new URLSearchParams()
   
-  if (searchForm.value.location) {
-    params.append('location', searchForm.value.location)
+  if (searchForm.value.ward) {
+    params.append('ward', searchForm.value.ward)
   }
   
-  if (searchForm.value.type) {
-    params.append('type', searchForm.value.type)
+  if (searchForm.value.street) {
+    params.append('street', searchForm.value.street)
   }
   
   if (searchForm.value.priceRange) {
