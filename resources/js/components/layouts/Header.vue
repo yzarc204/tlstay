@@ -71,6 +71,14 @@
               <span>Phòng của tôi</span>
             </Link>
             <Link
+              href="/profile"
+              @click="userDropdownOpen = false"
+              class="flex items-center space-x-2 px-4 py-2 text-gray-700 hover:bg-gray-100 transition-colors"
+            >
+              <UserIcon class="w-5 h-5 text-primary" />
+              <span>Thông tin của tôi</span>
+            </Link>
+            <Link
               href="/invoices"
               @click="userDropdownOpen = false"
               class="flex items-center space-x-2 px-4 py-2 text-gray-700 hover:bg-gray-100 transition-colors"
