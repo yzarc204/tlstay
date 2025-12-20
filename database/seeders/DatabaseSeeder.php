@@ -15,24 +15,11 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // Tạo user quản lý mẫu
-        User::factory()->create([
-            'name' => 'Nguyễn Thùy Dung',
-            'email' => 'manager@tlstay.com',
-            'role' => 'manager',
-            'phone' => '036975008',
-            'avatar' => null
+        $this->call([
+            SettingSeeder::class,
+            CompanyInformationSeeder::class,
+            AddressSeeder::class,
+            UserSeeder::class,
         ]);
-
-        // Tạo user khách hàng mẫu
-        User::factory()->create([
-            'name' => 'Nguyễn Văn A',
-            'email' => 'customer@tlstay.com',
-            'role' => 'customer',
-            'phone' => '0987654321',
-        ]);
-
-        // Tạo thêm một số user khách hàng mẫu
-        // User::factory(10)->create(['role' => 'customer']);
     }
 }
