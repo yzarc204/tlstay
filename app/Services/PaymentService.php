@@ -41,25 +41,18 @@ class PaymentService
             }
             
             // Update booking payment status
+            // Note: Room status will be updated by cronjob when check-in date arrives
             $lockedBooking->update([
                 'payment_status' => 'paid',
                 'paid_at' => now(),
                 'payment_method' => 'bank_transfer',
             ]);
             
-            // Update room status to occupied
-            $room = Room::lockForUpdate()->findOrFail($lockedBooking->room_id);
-            $room->update([
-                'status' => 'occupied',
-                'current_tenant_id' => $user->id,
-                'rental_start_date' => $lockedBooking->start_date,
-                'rental_end_date' => $lockedBooking->end_date,
-            ]);
-            
             Log::info('Booking payment confirmed', [
                 'booking_id' => $lockedBooking->id,
                 'user_id' => $user->id,
                 'amount' => $lockedBooking->total_price,
+                'check_in_date' => $lockedBooking->start_date->format('Y-m-d'),
             ]);
             
             return $lockedBooking->fresh();
