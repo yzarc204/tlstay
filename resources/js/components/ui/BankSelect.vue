@@ -1,78 +1,63 @@
 <template>
   <div class="relative">
-    <Listbox v-model="selectedBank" @update:modelValue="handleChange">
+    <Combobox v-model="selectedBank" @update:modelValue="handleChange">
       <div class="relative">
-        <ListboxButton
+        <div
+          class="relative w-full cursor-default overflow-hidden rounded-lg border bg-white text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-white/75 focus-visible:ring-offset-2 focus-visible:ring-offset-primary sm:text-sm"
           :class="[
-            'relative w-full cursor-default rounded-lg border bg-white py-2 pl-3 pr-10 text-left focus:outline-none focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 sm:text-sm',
             error
               ? 'border-red-500 focus-visible:ring-red-500'
-              : 'border-gray-300',
+              : 'border-gray-300 focus-visible:ring-primary',
             loading ? 'opacity-50 cursor-not-allowed' : ''
           ]"
-          :disabled="loading"
         >
-          <span class="flex items-center">
+          <div class="flex items-center pl-3">
             <img
               v-if="selectedBank && !loading"
               :src="getBankLogo(selectedBank)"
               :alt="getBankName(selectedBank)"
-              class="h-6 w-6 object-contain mr-3 flex-shrink-0"
+              class="h-5 w-5 object-contain mr-2 flex-shrink-0"
               @error="handleImageError"
             />
-            <span class="block truncate text-gray-900" :class="{ 'text-gray-500': !selectedBank }">
-              <span v-if="loading">Đang tải...</span>
-              <span v-else>{{ selectedBank ? getBankName(selectedBank) : placeholder }}</span>
-            </span>
-          </span>
-          <span class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
-            <ChevronUpDownIcon class="h-5 w-5 text-gray-400" aria-hidden="true" />
-          </span>
-        </ListboxButton>
-
+            <ComboboxInput
+              class="w-full border-none py-2 pr-10 text-sm leading-5 text-gray-900 focus:ring-0"
+              :display-value="() => {
+                if (query) return query
+                return selectedBank ? getBankDisplayName(selectedBank) : ''
+              }"
+              @change="query = $event.target.value"
+              :placeholder="placeholder"
+              :disabled="loading"
+            />
+          </div>
+          <ComboboxButton class="absolute inset-y-0 right-0 flex items-center pr-2" :disabled="loading">
+            <ChevronUpDownIcon
+              class="h-5 w-5 text-gray-400"
+              aria-hidden="true"
+            />
+          </ComboboxButton>
+        </div>
         <Transition
           leave-active-class="transition duration-100 ease-in"
           leave-from-class="opacity-100"
           leave-to-class="opacity-0"
+          @after-leave="query = ''"
         >
-          <ListboxOptions
+          <ComboboxOptions
             v-if="!loading"
             class="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black/5 focus:outline-none sm:text-sm"
           >
-            <ListboxOption
-              v-slot="{ active, selected }"
-              :value="null"
-              as="template"
+            <div
+              v-if="filteredBanks.length === 0 && query !== ''"
+              class="relative cursor-default select-none px-4 py-2 text-gray-700"
             >
-              <li
-                :class="[
-                  'relative cursor-default select-none py-2 pl-10 pr-4',
-                  active ? 'bg-primary text-white' : 'text-gray-900'
-                ]"
-              >
-                <span
-                  :class="[
-                    'block truncate',
-                    selected ? 'font-medium' : 'font-normal'
-                  ]"
-                >
-                  {{ placeholder }}
-                </span>
-                <span
-                  v-if="selected"
-                  :class="[
-                    'absolute inset-y-0 left-0 flex items-center pl-3',
-                    active ? 'text-white' : 'text-primary'
-                  ]"
-                >
-                  <CheckIcon class="h-5 w-5" aria-hidden="true" />
-                </span>
-              </li>
-            </ListboxOption>
-            <ListboxOption
-              v-for="bank in banks"
+              Không tìm thấy ngân hàng nào
+            </div>
+
+            <ComboboxOption
+              v-for="bank in filteredBanks"
               :key="bank.code"
-              v-slot="{ active, selected }"
+              v-slot="{ selected, active }"
               :value="bank.code"
               as="template"
             >
@@ -86,7 +71,7 @@
                   <img
                     :src="bank.logo || getBankLogo(bank.code)"
                     :alt="bank.name"
-                    class="h-6 w-6 object-contain mr-3 flex-shrink-0"
+                    class="h-5 w-5 object-contain mr-2 flex-shrink-0"
                     @error="handleImageError"
                   />
                   <span
@@ -95,7 +80,7 @@
                       selected ? 'font-medium' : 'font-normal'
                     ]"
                   >
-                    {{ bank.name }}
+                    {{ bank.name }} ({{ bank.code }})
                   </span>
                 </div>
                 <span
@@ -108,26 +93,32 @@
                   <CheckIcon class="h-5 w-5" aria-hidden="true" />
                 </span>
               </li>
-            </ListboxOption>
-          </ListboxOptions>
-          <ListboxOptions
+            </ComboboxOption>
+          </ComboboxOptions>
+          <ComboboxOptions
             v-else
             class="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black/5 focus:outline-none sm:text-sm"
           >
             <li class="relative cursor-default select-none py-2 px-4 text-gray-500 text-center">
               Đang tải danh sách ngân hàng...
             </li>
-          </ListboxOptions>
+          </ComboboxOptions>
         </Transition>
       </div>
-    </Listbox>
+    </Combobox>
     <p v-if="error" class="mt-1 text-sm text-red-600">{{ error }}</p>
   </div>
 </template>
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { Listbox, ListboxButton, ListboxOptions, ListboxOption } from '@headlessui/vue'
+import {
+  Combobox,
+  ComboboxInput,
+  ComboboxButton,
+  ComboboxOptions,
+  ComboboxOption,
+} from '@headlessui/vue'
 import { CheckIcon, ChevronUpDownIcon } from '@heroicons/vue/20/solid'
 import axios from 'axios'
 
@@ -150,6 +141,7 @@ const emit = defineEmits(['update:modelValue'])
 
 const banks = ref([])
 const loading = ref(true)
+const query = ref('')
 
 // Fetch banks from API
 onMounted(async () => {
@@ -197,6 +189,12 @@ const getBankName = (bankCode) => {
   return bank ? bank.name : bankCode
 }
 
+const getBankDisplayName = (bankCode) => {
+  if (!bankCode) return ''
+  const bank = banks.value.find(b => b.code === bankCode)
+  return bank ? `${bank.name} (${bank.code})` : bankCode
+}
+
 const handleImageError = (event) => {
   // Hide broken image
   event.target.style.display = 'none'
@@ -205,4 +203,17 @@ const handleImageError = (event) => {
 const handleChange = (value) => {
   selectedBank.value = value
 }
+
+const filteredBanks = computed(() => {
+  if (!query.value.trim()) {
+    return banks.value
+  }
+  
+  const searchTerm = query.value.toLowerCase().trim()
+  return banks.value.filter(bank => {
+    const nameMatch = bank.name.toLowerCase().includes(searchTerm)
+    const codeMatch = bank.code.toLowerCase().includes(searchTerm)
+    return nameMatch || codeMatch
+  })
+})
 </script>

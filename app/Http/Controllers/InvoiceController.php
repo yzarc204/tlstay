@@ -48,6 +48,7 @@ class InvoiceController extends Controller
             return [
                 'id' => $invoice->id,
                 'booking_id' => $invoice->booking_id,
+                'invoice_code' => $invoice->invoice_code,
                 'month' => $invoice->month,
                 'year' => $invoice->year,
                 'start_date' => $invoice->start_date ? $invoice->start_date->format('Y-m-d') : null,
@@ -119,6 +120,7 @@ class InvoiceController extends Controller
         $invoiceData = [
             'id' => $invoice->id,
             'booking_id' => $invoice->booking_id,
+            'invoice_code' => $invoice->invoice_code,
             'month' => $invoice->month,
             'year' => $invoice->year,
             'start_date' => $invoice->start_date ? $invoice->start_date->format('Y-m-d') : null,

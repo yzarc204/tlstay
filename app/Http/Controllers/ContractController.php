@@ -32,9 +32,6 @@ class ContractController extends Controller
 
         // Get company information
         $company = \App\Models\CompanyInformation::getInstance();
-        
-        // Get settings for bank information
-        $settings = Setting::getAll();
 
         // Prepare contract data
         $contractDate = now();
@@ -85,10 +82,19 @@ class ContractController extends Controller
         $totalPriceInWords = $this->numberToWords($totalPrice);
         $paymentMethod = $booking->payment_method === 'vnpay' ? 'Chuyển khoản qua VNPay' : 'Tiền mặt';
 
-        // Bank information
-        $bankAccountOwner = $settings['bank_account_owner'] ?? '';
-        $bankAccountNumber = $settings['bank_account_number'] ?? '';
-        $bankName = $settings['bank_name'] ?? '';
+        // Bank information from company
+        $bankAccountOwner = $company->bank_account_holder ?? '';
+        $bankAccountNumber = $company->bank_account_number ?? '';
+        $bankName = $company->bank_name ?? '';
+        $bankCode = $company->bank_code ?? '';
+        
+        // Format bank name with code if both exist
+        $bankDisplayName = $bankName;
+        if ($bankName && $bankCode) {
+            $bankDisplayName = "{$bankName} ({$bankCode})";
+        } elseif ($bankCode && !$bankName) {
+            $bankDisplayName = $bankCode;
+        }
 
         // Signature information
         $userSignature = $booking->user_signature ?? null;
@@ -133,6 +139,8 @@ class ContractController extends Controller
             'bankAccountOwner',
             'bankAccountNumber',
             'bankName',
+            'bankCode',
+            'bankDisplayName',
             'userSignature',
             'signedAt'
         ));

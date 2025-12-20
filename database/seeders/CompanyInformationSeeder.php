@@ -22,9 +22,10 @@ class CompanyInformationSeeder extends Seeder
                 'company_address' => 'Trường Đại học Thăng Long, Nghiêm Xuân Yêm, Hoàng Mai, Hà Nội',
                 'company_phone' => '+84 123 456 789',
                 'company_email' => 'contact@tlstay.com',
-                'bank_name' => 'Ngân hàng TMCP Đầu tư và Phát triển Việt Nam (BIDV)',
-                'bank_account_number' => '1234567890',
-                'bank_account_holder' => 'THANG LONG STAY',
+                'bank_name' => 'Ngân hàng Quốc tế Việt Nam',
+                'bank_code' => 'VIB',
+                'bank_account_number' => '028092005',
+                'bank_account_holder' => 'CONG TY TNHH THANG LONG STAY',
             ]
         );
     }

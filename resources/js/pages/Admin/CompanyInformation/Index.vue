@@ -191,12 +191,13 @@
             <div class="grid md:grid-cols-2 gap-6">
               <div>
                 <label class="block text-sm font-medium text-gray-700 mb-2">
-                  Tên ngân hàng
+                  Chọn ngân hàng
                 </label>
                 <BankSelect
-                  v-model="form.bank_name"
+                  v-model="form.bank_code"
                   placeholder="Chọn ngân hàng"
-                  :error="form.errors.bank_name"
+                  :error="form.errors.bank_code"
+                  @update:modelValue="handleBankCodeChange"
                 />
               </div>
 
@@ -267,6 +268,8 @@
 
 <script setup>
 import { useForm, Link } from '@inertiajs/vue3'
+import { ref, onMounted } from 'vue'
+import axios from 'axios'
 import AdminLayout from '@/layouts/AdminLayout.vue'
 import BankSelect from '@/components/ui/BankSelect.vue'
 import {
@@ -291,9 +294,38 @@ const form = useForm({
   company_phone: props.company.company_phone || '',
   company_email: props.company.company_email || '',
   bank_name: props.company.bank_name || '',
+  bank_code: props.company.bank_code || '',
   bank_account_number: props.company.bank_account_number || '',
   bank_account_holder: props.company.bank_account_holder || '',
 })
+
+const banks = ref([])
+
+// Fetch banks list
+onMounted(async () => {
+  try {
+    const response = await axios.get('/api/banks')
+    if (response.data && response.data.banks) {
+      banks.value = response.data.banks
+        .filter(bank => bank.transferSupported === 1)
+        .map(bank => ({
+          code: bank.code,
+          name: bank.name,
+        }))
+    }
+  } catch (error) {
+    console.error('Failed to fetch banks:', error)
+  }
+})
+
+const handleBankCodeChange = (bankCode) => {
+  if (bankCode && banks.value.length > 0) {
+    const bank = banks.value.find(b => b.code === bankCode)
+    if (bank) {
+      form.bank_name = bank.name
+    }
+  }
+}
 
 const handleSubmit = () => {
   form.put('/admin/company-information', {

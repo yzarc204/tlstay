@@ -27,6 +27,7 @@ class CompanyInformationController extends Controller
                 'company_phone' => $company->company_phone,
                 'company_email' => $company->company_email,
                 'bank_name' => $company->bank_name,
+                'bank_code' => $company->bank_code,
                 'bank_account_number' => $company->bank_account_number,
                 'bank_account_holder' => $company->bank_account_holder,
             ],
@@ -47,6 +48,7 @@ class CompanyInformationController extends Controller
             'company_phone' => 'nullable|string|max:20',
             'company_email' => 'nullable|email|max:255',
             'bank_name' => 'nullable|string|max:255',
+            'bank_code' => 'nullable|string|max:10',
             'bank_account_number' => 'nullable|string|max:50',
             'bank_account_holder' => 'nullable|string|max:255',
         ]);

@@ -1984,7 +1984,7 @@ text-indent:-18.0000pt;mso-list:l5 level1 lfo4;">
                 style="font-family:'Noto Sans Symbols';color:rgb(51,51,51);font-size:10.0000pt;"><span
                     style='mso-list:Ignore;'>&#9679;<span>&nbsp;</span></span></span>
             <![endif]><span dir="LTR" style="mso-spacerun:'yes';font-family:Aptos;color:rgb(51,51,51);
-font-size:10.5000pt;">Thanh to&#225;n: H&#236;nh th&#7913;c: {{ $paymentMethod }}</span><span style="mso-spacerun:'yes';font-family:'Times New Roman';color:rgb(51,51,51);
+font-size:10.5000pt;">Thanh to&#225;n: Chuy&#7875;n kho&#7843;n ng&#226;n h&#224;ng</span><span style="mso-spacerun:'yes';font-family:'Times New Roman';color:rgb(51,51,51);
 font-size:10.5000pt;">
                 <o:p></o:p>
             </span>
@@ -1995,14 +1995,14 @@ text-indent:-18.0000pt;mso-list:l5 level1 lfo4;">
                 style="font-family:'Noto Sans Symbols';color:rgb(51,51,51);font-size:10.0000pt;"><span
                     style='mso-list:Ignore;'>&#9679;<span>&nbsp;</span></span></span>
             <![endif]><span dir="LTR" style="mso-spacerun:'yes';font-family:Aptos;color:rgb(51,51,51);
-font-size:10.5000pt;">N&#7871;u chuy&#7875;n kho&#7843;n, TK B&#234;n
-                A:</span>@if($paymentMethod == 'chuyển khoản' || $paymentMethod == 'Chuyển khoản qua VNPay' || $paymentMethod == 'vnpay')<span
+font-size:10.5000pt;">TK B&#234;n A:</span>@if($bankAccountOwner && $bankAccountNumber)<span
                                     dir="LTR" style="mso-spacerun:'yes';font-family:Aptos;color:rgb(51,51,51);
                     font-size:10.5000pt;"><br></span><span dir="LTR" style="mso-spacerun:'yes';font-family:Aptos;color:rgb(51,51,51);
-                    font-size:10.5000pt;">&nbsp;&nbsp;- Ch&#7911; TK: {{ $bankAccountOwner }}&nbsp;&nbsp;- S&#7889; TK:
-                                    {{ $bankAccountNumber }}</span><span dir="LTR" style="mso-spacerun:'yes';font-family:Aptos;color:rgb(51,51,51);
+                font-size:10.5000pt;">&nbsp;&nbsp;- Ng&#226;n h&#224;ng: {{ $bankDisplayName ?? $bankName }}</span><span dir="LTR" style="mso-spacerun:'yes';font-family:Aptos;color:rgb(51,51,51);
                     font-size:10.5000pt;"><br></span><span dir="LTR" style="mso-spacerun:'yes';font-family:Aptos;color:rgb(51,51,51);
-                font-size:10.5000pt;">&nbsp;&nbsp;- Ng&#226;n h&#224;ng: {{ $bankName }}</span>@endif<span style="mso-spacerun:'yes';font-family:'Times New Roman';color:rgb(51,51,51);
+                    font-size:10.5000pt;">&nbsp;&nbsp;- S&#7889; t&#224;i kho&#7843;n: {{ $bankAccountNumber }}</span><span dir="LTR" style="mso-spacerun:'yes';font-family:Aptos;color:rgb(51,51,51);
+                    font-size:10.5000pt;"><br></span><span dir="LTR" style="mso-spacerun:'yes';font-family:Aptos;color:rgb(51,51,51);
+                font-size:10.5000pt;">&nbsp;&nbsp;- Ch&#7911; t&#224;i kho&#7843;n: {{ $bankAccountOwner }}</span>@endif<span style="mso-spacerun:'yes';font-family:'Times New Roman';color:rgb(51,51,51);
 font-size:10.5000pt;">
                 <o:p></o:p>
             </span>

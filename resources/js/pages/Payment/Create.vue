@@ -54,13 +54,13 @@
                 <span class="text-gray-600">Ngân hàng:</span>
                 <div class="flex items-center space-x-2">
                   <img
-                    v-if="payment_info.bank_name"
-                    :src="getBankLogo(payment_info.bank_name)"
-                    :alt="getBankName(payment_info.bank_name)"
+                    v-if="payment_info.bank_code"
+                    :src="getBankLogo(payment_info.bank_code)"
+                    :alt="getBankDisplayName(payment_info)"
                     class="h-6 w-6 object-contain"
                     @error="handleImageError"
                   />
-                  <span class="font-semibold text-gray-900">{{ getBankName(payment_info.bank_name) }}</span>
+                  <span class="font-semibold text-gray-900">{{ getBankDisplayName(payment_info) }}</span>
                 </div>
               </div>
               <div class="flex justify-between">
@@ -197,6 +197,20 @@ const getBankLogo = (bankCode) => {
   if (!bankCode) return null
   // Use API logo URL format
   return `https://api.vietqr.io/img/${bankCode}.png`
+}
+
+const getBankDisplayName = (paymentInfo) => {
+  if (!paymentInfo) return ''
+  if (paymentInfo.bank_name && paymentInfo.bank_code) {
+    return `${paymentInfo.bank_name} (${paymentInfo.bank_code})`
+  }
+  if (paymentInfo.bank_name) {
+    return paymentInfo.bank_name
+  }
+  if (paymentInfo.bank_code) {
+    return getBankName(paymentInfo.bank_code)
+  }
+  return ''
 }
 
 const getBankName = (bankCode) => {

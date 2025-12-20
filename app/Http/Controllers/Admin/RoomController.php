@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\StoreRoomRequest;
+use App\Helpers\CodeGenerator;
 use App\Models\Booking;
 use App\Models\House;
 use App\Models\Invoice;
@@ -176,6 +177,9 @@ class RoomController extends Controller
                 
                 if ($tenant) {
                     // Create booking
+                    // Generate unique booking code
+                    $bookingCode = CodeGenerator::generateBookingCode();
+                    
                     $booking = Booking::create([
                         'user_id' => $tenant->id,
                         'house_id' => $house->id,
@@ -189,12 +193,7 @@ class RoomController extends Controller
                         'payment_status' => 'paid',
                         'payment_method' => 'manual',
                         'paid_at' => now(),
-                        'booking_code' => null,
-                    ]);
-
-                    // Set booking_code to booking ID
-                    $booking->update([
-                        'booking_code' => (string) $booking->id,
+                        'booking_code' => $bookingCode,
                     ]);
                 }
             });
@@ -295,6 +294,9 @@ class RoomController extends Controller
                      + (float) $request->water_amount 
                      + (float) ($request->other_fees ?? 0);
 
+        // Generate unique invoice code
+        $invoiceCode = CodeGenerator::generateInvoiceCode();
+
         // Create invoice
         $invoice = Invoice::create([
             'booking_id' => $booking ? $booking->id : null,
@@ -310,6 +312,7 @@ class RoomController extends Controller
             'status' => 'pending',
             'due_date' => $request->due_date ? Carbon::parse($request->due_date) : Carbon::now()->addDays(7),
             'notes' => $request->notes,
+            'invoice_code' => $invoiceCode,
         ]);
 
         return back()->with('success', 'Tạo hóa đơn điện nước thành công!');

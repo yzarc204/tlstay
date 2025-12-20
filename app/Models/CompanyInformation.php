@@ -15,6 +15,7 @@ class CompanyInformation extends Model
         'company_phone',
         'company_email',
         'bank_name',
+        'bank_code',
         'bank_account_number',
         'bank_account_holder',
     ];

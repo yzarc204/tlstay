@@ -75,7 +75,7 @@ class PaymentController extends Controller
             // Get company payment information
             $company = CompanyInformation::getInstance();
             
-            if (!$company->bank_name || !$company->bank_account_number || !$company->bank_account_holder) {
+            if (!$company->bank_code || !$company->bank_account_number || !$company->bank_account_holder) {
                 \Log::warning('Payment: Company payment info not configured');
                 return redirect()->route('history.index')
                     ->with('error', 'Thông tin thanh toán của doanh nghiệp chưa được cấu hình. Vui lòng liên hệ quản trị viên.');
@@ -84,7 +84,7 @@ class PaymentController extends Controller
             // Generate VietQR URL
             $bookingCode = $booking->booking_code ?? (string) $booking->id;
             $qrUrl = VietQRHelper::generateQRUrl(
-                $company->bank_name,
+                $company->bank_code,
                 $company->bank_account_number,
                 (int) $booking->total_price,
                 $bookingCode,
@@ -103,6 +103,7 @@ class PaymentController extends Controller
                 ],
                 'payment_info' => [
                     'bank_name' => $company->bank_name,
+                    'bank_code' => $company->bank_code,
                     'bank_account_number' => $company->bank_account_number,
                     'bank_account_holder' => $company->bank_account_holder,
                 ],
@@ -216,7 +217,7 @@ class PaymentController extends Controller
             // Get company payment information
             $company = CompanyInformation::getInstance();
             
-            if (!$company->bank_name || !$company->bank_account_number || !$company->bank_account_holder) {
+            if (!$company->bank_code || !$company->bank_account_number || !$company->bank_account_holder) {
                 \Log::warning('Payment: Company payment info not configured');
                 return redirect()->route('invoices.index')
                     ->with('error', 'Thông tin thanh toán của doanh nghiệp chưa được cấu hình. Vui lòng liên hệ quản trị viên.');
@@ -231,9 +232,9 @@ class PaymentController extends Controller
             );
 
             // Generate VietQR URL
-            $invoiceCode = 'INV-' . $invoice->id;
+            $invoiceCode = $invoice->invoice_code ?? 'INV-' . $invoice->id;
             $qrUrl = VietQRHelper::generateQRUrl(
-                $company->bank_name,
+                $company->bank_code,
                 $company->bank_account_number,
                 (int) $total,
                 $invoiceCode,
@@ -265,6 +266,7 @@ class PaymentController extends Controller
                 ],
                 'payment_info' => [
                     'bank_name' => $company->bank_name,
+                    'bank_code' => $company->bank_code,
                     'bank_account_number' => $company->bank_account_number,
                     'bank_account_holder' => $company->bank_account_holder,
                 ],

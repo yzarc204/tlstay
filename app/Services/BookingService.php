@@ -6,6 +6,7 @@ use App\Models\Booking;
 use App\Models\House;
 use App\Models\Room;
 use App\Models\User;
+use App\Helpers\CodeGenerator;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
@@ -58,7 +59,10 @@ class BookingService
                     throw new \Exception('Phòng này đã được đặt hoặc đang có người ở trong khoảng thời gian bạn chọn. Vui lòng chọn khoảng thời gian khác.');
                 }
                 
-                // Create booking (without booking_code first)
+                // Generate unique booking code
+                $bookingCode = CodeGenerator::generateBookingCode();
+                
+                // Create booking with booking code
                 $booking = Booking::create([
                     'user_id' => $user->id,
                     'house_id' => $house->id,
@@ -71,16 +75,8 @@ class BookingService
                     'notes' => $notes,
                     'status' => 'active',
                     'payment_status' => 'pending',
-                    'booking_code' => null, // Will be set to ID after creation
+                    'booking_code' => $bookingCode,
                 ]);
-                
-                // Set booking_code to booking ID
-                $booking->update([
-                    'booking_code' => (string) $booking->id,
-                ]);
-                
-                // Refresh to get updated booking_code
-                $booking->refresh();
                 
                 return $booking;
             });
