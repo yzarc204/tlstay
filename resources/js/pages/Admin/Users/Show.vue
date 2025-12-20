@@ -1,4 +1,5 @@
 <template>
+  <Head title="Chi tiết Tài khoản" />
   <AdminLayout title="Chi tiết Tài khoản">
     <div class="space-y-6">
       <!-- Header -->
@@ -210,10 +211,10 @@
               <span
                 :class="[
                   'inline-flex px-2 py-1 text-xs font-semibold rounded-full',
-                  booking.status === 'confirmed' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
+                  getBookingStatusBadgeClass(booking.booking_status || booking.status)
                 ]"
               >
-                {{ booking.status === 'confirmed' ? 'Đã xác nhận' : 'Chờ xác nhận' }}
+                {{ getBookingStatusText(booking.booking_status || booking.status) }}
               </span>
             </div>
           </div>
@@ -272,7 +273,7 @@
 
 <script setup>
 import { ref } from 'vue'
-import { router, Link } from '@inertiajs/vue3'
+import { Head, router, Link } from '@inertiajs/vue3'
 import AdminLayout from '@/layouts/AdminLayout.vue'
 import Button from '@/components/ui/Button.vue'
 import {
@@ -340,6 +341,30 @@ const formatDateOnly = (date) => {
     month: '2-digit',
     day: '2-digit',
   })
+}
+
+const getBookingStatusText = (status) => {
+  const statusMap = {
+    upcoming: 'Sắp tới',
+    active: 'Đang ở',
+    past: 'Đã ở',
+    pending: 'Chờ thanh toán',
+    completed: 'Đã kết thúc',
+    cancelled: 'Đã hủy',
+  }
+  return statusMap[status] || status
+}
+
+const getBookingStatusBadgeClass = (status) => {
+  const classMap = {
+    upcoming: 'bg-amber-100 text-amber-700',
+    active: 'bg-green-100 text-green-700',
+    past: 'bg-gray-100 text-gray-600',
+    pending: 'bg-yellow-100 text-yellow-700',
+    completed: 'bg-gray-100 text-gray-600',
+    cancelled: 'bg-red-100 text-red-700',
+  }
+  return classMap[status] || 'bg-gray-100 text-gray-600'
 }
 
 const formatGender = (gender) => {

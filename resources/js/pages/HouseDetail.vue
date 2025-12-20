@@ -1,4 +1,5 @@
 <template>
+  <Head :title="house?.name || 'Chi tiết nhà trọ'" />
   <AppLayout>
     <div class="house-detail bg-light min-h-screen">
       <!-- Loading State -->
@@ -261,7 +262,7 @@
 
 <script setup>
 import { ref, computed, watch } from 'vue'
-import { router, Link, usePage } from '@inertiajs/vue3'
+import { Head, router, Link, usePage } from '@inertiajs/vue3'
 import AppLayout from '@/layouts/AppLayout.vue'
 import { useAuth } from '@/composables/useAuth'
 import { getAmenityIcon, getAmenityName } from '@/utils/amenityIcons'

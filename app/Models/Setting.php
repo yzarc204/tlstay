@@ -27,11 +27,16 @@ class Setting extends Model
     /**
      * Set setting value by key
      */
-    public static function set(string $key, $value): void
+    public static function set(string $key, $value, ?string $label = null, ?string $type = 'text', ?string $group = 'system'): void
     {
         static::updateOrCreate(
             ['key' => $key],
-            ['value' => $value]
+            [
+                'value' => $value,
+                'label' => $label ?? ucfirst(str_replace('_', ' ', $key)),
+                'type' => $type,
+                'group' => $group,
+            ]
         );
     }
 

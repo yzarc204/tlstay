@@ -1,4 +1,5 @@
 <template>
+  <Head title="Đặt phòng thành công" />
   <AppLayout>
     <div class="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-8 md:py-12">
       <div class="max-w-4xl mx-auto px-4">
@@ -177,6 +178,14 @@
                     <p class="text-lg font-bold text-teal-900">
                       Phòng {{ booking.room_number }} - Tầng {{ booking.floor }}
                     </p>
+                    <div v-if="booking.booking_status" class="mt-2">
+                      <span
+                        class="inline-flex px-2 py-1 text-xs font-semibold rounded-full"
+                        :class="getBookingStatusBadgeClass(booking.booking_status)"
+                      >
+                        {{ getBookingStatusText(booking.booking_status) }}
+                      </span>
+                    </div>
                   </div>
                 </div>
                 <div class="space-y-5">
@@ -433,7 +442,7 @@
 
 <script setup>
 import { ref, onMounted, computed } from 'vue'
-import { Link, router } from '@inertiajs/vue3'
+import { Head, Link, router } from '@inertiajs/vue3'
 import AppLayout from '@/layouts/AppLayout.vue'
 import {
   CheckCircleIcon,
@@ -527,6 +536,30 @@ const calculateDays = (startDate, endDate) => {
   const diffTime = Math.abs(end - start)
   const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
   return diffDays + 1
+}
+
+const getBookingStatusText = (status) => {
+  const statusMap = {
+    upcoming: 'Sắp tới',
+    active: 'Đang ở',
+    past: 'Đã ở',
+    pending: 'Chờ thanh toán',
+    completed: 'Đã kết thúc',
+    cancelled: 'Đã hủy',
+  }
+  return statusMap[status] || status
+}
+
+const getBookingStatusBadgeClass = (status) => {
+  const classMap = {
+    upcoming: 'bg-amber-100 text-amber-700',
+    active: 'bg-green-100 text-green-700',
+    past: 'bg-gray-100 text-gray-600',
+    pending: 'bg-yellow-100 text-yellow-700',
+    completed: 'bg-gray-100 text-gray-600',
+    cancelled: 'bg-red-100 text-red-700',
+  }
+  return classMap[status] || 'bg-gray-100 text-gray-600'
 }
 
 const getPaymentMethodText = (method) => {

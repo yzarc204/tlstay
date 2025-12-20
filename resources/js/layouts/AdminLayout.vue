@@ -42,6 +42,11 @@
         label="Cài đặt website"
         :icon="Cog6ToothIcon"
       />
+      <SidebarItem
+        href="/admin/god-system"
+        label="God System"
+        :icon="SparklesIcon"
+      />
       
       <template #bottom>
         <SidebarItem
@@ -98,6 +103,7 @@ import {
   MapPinIcon,
   CalendarIcon,
   Cog6ToothIcon,
+  SparklesIcon,
 } from '@heroicons/vue/24/outline'
 
 defineProps({

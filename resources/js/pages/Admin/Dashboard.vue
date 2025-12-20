@@ -1,4 +1,5 @@
 <template>
+  <Head title="Dashboard" />
   <AdminLayout title="Dashboard">
     <div class="space-y-6">
       <!-- Welcome Section -->
@@ -147,7 +148,7 @@
 </template>
 
 <script setup>
-import { Link } from '@inertiajs/vue3'
+import { Head, Link } from '@inertiajs/vue3'
 import AdminLayout from '@/layouts/AdminLayout.vue'
 import Button from '@/components/ui/Button.vue'
 import {

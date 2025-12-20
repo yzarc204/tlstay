@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Booking;
 use App\Models\Invoice;
+use App\Services\SystemTimeService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
@@ -34,7 +35,8 @@ class RentalHistoryController extends Controller
                     'room_number' => $booking->room->room_number ?? null,
                     'start_date' => $booking->start_date->format('Y-m-d'),
                     'end_date' => $booking->end_date->format('Y-m-d'),
-                    'status' => $this->getBookingStatus($booking),
+                    'status' => $booking->status, // active, completed, cancelled
+                    'booking_status' => $booking->booking_status ?? $this->getBookingStatus($booking), // upcoming, active, past
                     'total_price' => (float) $booking->total_price,
                     'payment_status' => $booking->payment_status,
                     'payment_method' => $booking->payment_method,
@@ -89,28 +91,30 @@ class RentalHistoryController extends Controller
 
     /**
      * Determine booking status based on dates and payment
+     * Returns: 'upcoming', 'active', or 'past'
      */
     private function getBookingStatus($booking): string
     {
-        $now = now();
+        // Only calculate for paid bookings
+        if ($booking->payment_status !== 'paid') {
+            return 'upcoming'; // Default for unpaid bookings
+        }
+
+        $today = SystemTimeService::today();
+        $startDate = $booking->start_date;
         $endDate = $booking->end_date;
 
-        // If payment is not completed, return pending
-        if ($booking->payment_status !== 'paid') {
-            return 'pending';
-        }
-
-        // If end date has passed, return completed
-        if ($endDate->isPast()) {
-            return 'completed';
-        }
-
-        // If start date hasn't arrived yet, return upcoming
-        if ($booking->start_date->isFuture()) {
+        // If start date is in the future, it's upcoming
+        if ($startDate->gt($today)) {
             return 'upcoming';
         }
 
-        // Otherwise, it's active
+        // If end date has passed, it's past
+        if ($endDate->lt($today)) {
+            return 'past';
+        }
+
+        // If start_date <= today <= end_date, it's active
         return 'active';
     }
 }

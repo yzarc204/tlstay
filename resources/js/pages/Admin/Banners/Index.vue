@@ -1,4 +1,5 @@
 <template>
+  <Head title="Quản lý Banner" />
   <AdminLayout title="Quản lý Banner">
     <div class="space-y-6">
       <!-- Header -->
@@ -124,7 +125,7 @@
 
 <script setup>
 import { ref, reactive } from 'vue'
-import { Link, router } from '@inertiajs/vue3'
+import { Head, Link, router } from '@inertiajs/vue3'
 import AdminLayout from '@/layouts/AdminLayout.vue'
 import Button from '@/components/ui/Button.vue'
 import { PlusIcon, PhotoIcon, TrashIcon } from '@heroicons/vue/24/outline'

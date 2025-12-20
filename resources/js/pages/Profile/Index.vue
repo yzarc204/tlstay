@@ -1,4 +1,5 @@
 <template>
+  <Head title="Thông tin tài khoản" />
   <AppLayout>
     <div class="min-h-screen bg-gray-50 py-8">
       <div class="max-w-4xl mx-auto px-4">
@@ -330,7 +331,7 @@
 
 <script setup>
 import { computed, ref } from 'vue'
-import { useForm, Link } from '@inertiajs/vue3'
+import { Head, useForm, Link } from '@inertiajs/vue3'
 import AppLayout from '@/layouts/AppLayout.vue'
 import SignaturePad from '@/components/ui/SignaturePad.vue'
 import {

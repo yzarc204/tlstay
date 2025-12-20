@@ -15,7 +15,7 @@
     <div class="text-center mb-1">
       <p
         class="text-base font-bold"
-        :class="room.status === 'available' ? 'text-primary' : 'text-gray-400'"
+        :class="statusClasses.text"
       >
         {{ room.roomNumber }}
       </p>
@@ -25,7 +25,7 @@
     <div class="flex justify-center mb-1">
       <HomeIcon
         class="w-8 h-8"
-        :class="room.status === 'available' ? 'text-primary' : 'text-gray-300'"
+        :class="statusClasses.icon"
       />
     </div>
 
@@ -34,7 +34,7 @@
       <p class="text-xs text-gray-600 mb-0.5">{{ room.area }}m²</p>
       <p
         class="text-xs font-semibold"
-        :class="room.status === 'available' ? 'text-primary' : 'text-gray-400'"
+        :class="statusClasses.text"
       >
         {{ formatPrice(room.pricePerDay || room.price) }}/ngày
       </p>
@@ -44,17 +44,15 @@
     <div class="absolute top-1 right-1">
       <span
         class="badge text-[10px] px-1.5 py-0.5"
-        :class="
-          room.status === 'available' ? 'bg-primary-100 text-primary-700' : 'bg-gray-100 text-gray-500'
-        "
+        :class="statusClasses.badge"
       >
-        {{ room.status === 'available' ? 'Trống' : 'Đã thuê' }}
+        {{ statusText }}
       </span>
     </div>
 
-    <!-- Tenant Info (if occupied) -->
-    <div v-if="room.status === 'occupied'" class="mt-1 pt-1 border-t text-center">
-      <p class="text-[10px] text-gray-500">{{ room.tenant }}</p>
+    <!-- Tenant Info (if active or past) -->
+    <div v-if="room.status === 'active' || room.status === 'past'" class="mt-1 pt-1 border-t text-center">
+      <p class="text-[10px] text-gray-500">{{ room.tenant || 'N/A' }}</p>
     </div>
   </div>
 </template>
@@ -76,12 +74,53 @@ const props = defineProps({
 
 const emit = defineEmits(['select'])
 
+const statusText = computed(() => {
+  const statusMap = {
+    'available': 'Trống',
+    'upcoming': 'Sắp tới',
+    'active': 'Đang ở',
+    'past': 'Đã ở',
+  }
+  return statusMap[props.room.status] || 'N/A'
+})
+
+const statusClasses = computed(() => {
+  const status = props.room.status
+  const classes = {
+    'available': {
+      text: 'text-primary',
+      icon: 'text-primary',
+      badge: 'bg-primary-100 text-primary-700',
+    },
+    'upcoming': {
+      text: 'text-amber-600',
+      icon: 'text-amber-400',
+      badge: 'bg-amber-100 text-amber-700',
+    },
+    'active': {
+      text: 'text-red-600',
+      icon: 'text-red-400',
+      badge: 'bg-red-100 text-red-700',
+    },
+    'past': {
+      text: 'text-gray-400',
+      icon: 'text-gray-300',
+      badge: 'bg-gray-100 text-gray-500',
+    },
+  }
+  return classes[status] || classes['available']
+})
+
 const roomClasses = computed(() => {
   if (props.room.status === 'available') {
     if (props.selected) {
       return 'border-secondary bg-secondary-50 shadow-lg ring-2 ring-secondary-200 ring-offset-2'
     }
     return 'border-primary bg-primary-50 hover:bg-primary-100 hover:shadow-lg'
+  } else if (props.room.status === 'upcoming') {
+    return 'border-amber-300 bg-amber-50 cursor-not-allowed opacity-80'
+  } else if (props.room.status === 'active') {
+    return 'border-red-300 bg-red-50 cursor-not-allowed opacity-80'
   } else {
     return 'border-gray-300 bg-gray-50 cursor-not-allowed opacity-60'
   }

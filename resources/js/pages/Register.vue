@@ -1,4 +1,5 @@
 <template>
+  <Head title="Đăng ký" />
   <div
     class="min-h-screen flex items-center justify-center bg-gradient-to-br from-secondary to-primary py-12 px-4 sm:px-6 lg:px-8"
   >
@@ -176,7 +177,7 @@
 
 <script setup>
 import { ref } from 'vue'
-import { router, Link, usePage } from '@inertiajs/vue3'
+import { Head, router, Link, usePage } from '@inertiajs/vue3'
 import { useAuthStore } from '@/stores/auth'
 import {
   ArrowPathIcon,

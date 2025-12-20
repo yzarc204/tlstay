@@ -1,4 +1,5 @@
 <template>
+  <Head title="Thông tin doanh nghiệp" />
   <AdminLayout title="Thông tin doanh nghiệp">
     <div class="space-y-6">
       <!-- Header -->
@@ -267,7 +268,7 @@
 </template>
 
 <script setup>
-import { useForm, Link } from '@inertiajs/vue3'
+import { Head, useForm, Link } from '@inertiajs/vue3'
 import { ref, onMounted } from 'vue'
 import axios from 'axios'
 import AdminLayout from '@/layouts/AdminLayout.vue'

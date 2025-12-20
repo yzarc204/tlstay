@@ -1,4 +1,5 @@
 <template>
+  <Head title="Đang chuyển hướng thanh toán" />
   <div class="min-h-screen bg-gray-50 flex items-center justify-center">
     <div class="text-center">
       <div class="inline-block animate-spin rounded-full h-16 w-16 border-4 border-primary border-t-transparent mb-4"></div>
@@ -9,6 +10,7 @@
 </template>
 
 <script setup>
+import { Head } from '@inertiajs/vue3'
 import { onMounted } from 'vue'
 
 const props = defineProps({

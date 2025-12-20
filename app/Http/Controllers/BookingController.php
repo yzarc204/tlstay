@@ -56,10 +56,18 @@ class BookingController extends Controller
             })
             ->values();
         
-        // Calculate available rooms count based on status
+        // Calculate available rooms count based on status (only 'available' status)
         $availableRoomsCount = $rooms->filter(function ($room) {
             return $room['status'] === 'available';
         })->count();
+        
+        // Calculate rooms by status for display
+        $roomsByStatus = [
+            'available' => $rooms->filter(fn($r) => $r['status'] === 'available')->count(),
+            'upcoming' => $rooms->filter(fn($r) => $r['status'] === 'upcoming')->count(),
+            'active' => $rooms->filter(fn($r) => $r['status'] === 'active')->count(),
+            'past' => $rooms->filter(fn($r) => $r['status'] === 'past')->count(),
+        ];
 
         $houseData = [
             'id' => $house->id,
@@ -220,6 +228,8 @@ class BookingController extends Controller
             'floor' => $booking->room->floor,
             'start_date' => $booking->start_date->format('Y-m-d'),
             'end_date' => $booking->end_date->format('Y-m-d'),
+            'status' => $booking->status,
+            'booking_status' => $booking->booking_status,
             'total_price' => (float) $booking->total_price,
             'discount_amount' => (float) $booking->discount_amount,
             'payment_method' => $booking->payment_method,

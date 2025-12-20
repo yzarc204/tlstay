@@ -1,4 +1,5 @@
 <template>
+  <Head title="Lịch sử thuê phòng" />
   <AppLayout>
     <div class="rental-history bg-light min-h-screen py-12">
       <div class="container mx-auto px-4">
@@ -45,9 +46,9 @@
                 </div>
                 <span
                   class="badge"
-                  :class="getStatusBadgeClass(booking.status)"
+                  :class="getBookingStatusBadgeClass(booking.booking_status || booking.status)"
                 >
-                  {{ getStatusText(booking.status) }}
+                  {{ getBookingStatusText(booking.booking_status || booking.status) }}
                 </span>
               </div>
 
@@ -204,7 +205,7 @@
 
 <script setup>
 import { computed, ref, onMounted } from 'vue'
-import { Link, router, usePage } from '@inertiajs/vue3'
+import { Head, Link, router, usePage } from '@inertiajs/vue3'
 import AppLayout from '@/layouts/AppLayout.vue'
 import {
   ClipboardDocumentListIcon,
@@ -278,6 +279,31 @@ const getStatusBadgeClass = (status) => {
     active: 'bg-primary-100 text-primary-700',
     upcoming: 'bg-blue-100 text-blue-700',
     completed: 'bg-gray-100 text-gray-600',
+  }
+  return classMap[status] || 'bg-gray-100 text-gray-600'
+}
+
+// Booking status functions (upcoming, active, past)
+const getBookingStatusText = (status) => {
+  const statusMap = {
+    upcoming: 'Sắp tới',
+    active: 'Đang ở',
+    past: 'Đã ở',
+    pending: 'Chờ thanh toán',
+    completed: 'Đã kết thúc',
+    cancelled: 'Đã hủy',
+  }
+  return statusMap[status] || status
+}
+
+const getBookingStatusBadgeClass = (status) => {
+  const classMap = {
+    upcoming: 'bg-amber-100 text-amber-700',
+    active: 'bg-green-100 text-green-700',
+    past: 'bg-gray-100 text-gray-600',
+    pending: 'bg-yellow-100 text-yellow-700',
+    completed: 'bg-gray-100 text-gray-600',
+    cancelled: 'bg-red-100 text-red-700',
   }
   return classMap[status] || 'bg-gray-100 text-gray-600'
 }

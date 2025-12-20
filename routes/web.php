@@ -125,6 +125,15 @@ Route::middleware(['auth', 'role:manager'])->group(function () {
         Route::delete('/social-links/{id}', [\App\Http\Controllers\Admin\SettingsController::class, 'destroySocialLink'])->name('social-links.destroy');
     });
 
+    // God System
+    Route::prefix('admin/god-system')->name('admin.god-system.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Admin\GodSystemController::class, 'index'])->name('index');
+        Route::post('/system-time', [\App\Http\Controllers\Admin\GodSystemController::class, 'updateSystemTime'])->name('system-time.update');
+        Route::post('/system-time/reset', [\App\Http\Controllers\Admin\GodSystemController::class, 'resetSystemTime'])->name('system-time.reset');
+        Route::post('/trigger-update-room', [\App\Http\Controllers\Admin\GodSystemController::class, 'triggerUpdateRoom'])->name('trigger-update-room');
+        Route::get('/system-time/info', [\App\Http\Controllers\Admin\GodSystemController::class, 'getSystemTimeInfo'])->name('system-time.info');
+    });
+
     // Company Information
     Route::prefix('admin/company-information')->name('admin.company-information.')->group(function () {
         Route::get('/', [\App\Http\Controllers\Admin\CompanyInformationController::class, 'index'])->name('index');

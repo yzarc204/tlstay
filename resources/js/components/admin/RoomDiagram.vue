@@ -62,38 +62,34 @@
         >
           <!-- Grid of Rooms -->
           <div class="grid grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-3">
-            <div
-              v-for="room in getFloorRooms(floor)"
-              :key="room.id"
-              @click="selectRoom(room)"
-              :class="[
-                'relative p-4 border-2 rounded-lg cursor-pointer transition-all',
-                selectedRoom?.id === room.id
-                  ? 'border-primary bg-primary/10 shadow-md'
-                  : room.status === 'occupied'
-                  ? 'border-red-300 bg-red-50 hover:border-red-400'
-                  : 'border-gray-200 bg-gray-50 hover:border-gray-300 hover:shadow-sm'
-              ]"
-            >
-              <div class="text-center">
-                <div class="text-sm font-semibold text-gray-900 mb-1">
-                  {{ room.room_number }}
-                </div>
-                <div class="text-xs text-gray-600">
-                  {{ formatPrice(room.price_per_day) }}đ/ngày
-                </div>
-                <div
-                  :class="[
-                    'mt-2 text-xs px-2 py-1 rounded-full inline-block',
-                    room.status === 'occupied'
-                      ? 'bg-red-100 text-red-800'
-                      : 'bg-green-100 text-green-800'
-                  ]"
-                >
-                  {{ room.status === 'occupied' ? 'Đã thuê' : 'Trống' }}
+              <div
+                v-for="room in getFloorRooms(floor)"
+                :key="room.id"
+                @click="selectRoom(room)"
+                :class="[
+                  'relative p-4 border-2 rounded-lg cursor-pointer transition-all',
+                  selectedRoom?.id === room.id
+                    ? 'border-primary bg-primary/10 shadow-md'
+                    : getRoomStatusClass(room.status)
+                ]"
+              >
+                <div class="text-center">
+                  <div class="text-sm font-semibold text-gray-900 mb-1">
+                    {{ room.room_number }}
+                  </div>
+                  <div class="text-xs text-gray-600">
+                    {{ formatPrice(room.price_per_day) }}đ/ngày
+                  </div>
+                  <div
+                    :class="[
+                      'mt-2 text-xs px-2 py-1 rounded-full inline-block',
+                      getStatusBadgeClass(room.status)
+                    ]"
+                  >
+                    {{ getStatusText(room.status) }}
+                  </div>
                 </div>
               </div>
-            </div>
 
             <!-- Add Room Button for this floor -->
             <div
@@ -201,6 +197,38 @@ const handleAddRoomFromHeader = () => {
 const formatPrice = (price) => {
   if (!price) return '0'
   return new Intl.NumberFormat('vi-VN').format(price)
+}
+
+const getStatusText = (status) => {
+  const statusMap = {
+    'available': 'Trống',
+    'upcoming': 'Sắp tới',
+    'active': 'Đang ở',
+    'past': 'Đã ở',
+  }
+  return statusMap[status] || 'N/A'
+}
+
+const getStatusBadgeClass = (status) => {
+  const classes = {
+    'available': 'bg-green-100 text-green-800',
+    'upcoming': 'bg-amber-100 text-amber-800',
+    'active': 'bg-red-100 text-red-800',
+    'past': 'bg-gray-100 text-gray-600',
+  }
+  return classes[status] || classes['available']
+}
+
+const getRoomStatusClass = (status) => {
+  if (status === 'active') {
+    return 'border-red-300 bg-red-50 hover:border-red-400'
+  } else if (status === 'upcoming') {
+    return 'border-amber-300 bg-amber-50 hover:border-amber-400'
+  } else if (status === 'past') {
+    return 'border-gray-300 bg-gray-50 hover:border-gray-400'
+  } else {
+    return 'border-gray-200 bg-gray-50 hover:border-gray-300 hover:shadow-sm'
+  }
 }
 
 // Expose newRoomFloor for parent component

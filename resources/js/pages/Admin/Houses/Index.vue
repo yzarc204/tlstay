@@ -1,4 +1,5 @@
 <template>
+  <Head title="Quản lý Nhà trọ" />
   <AdminLayout title="Quản lý Nhà trọ">
     <div class="space-y-6">
       <!-- Header -->
@@ -300,7 +301,7 @@
 
 <script setup>
 import { ref, reactive, computed } from 'vue'
-import { Link, router } from '@inertiajs/vue3'
+import { Head, Link, router } from '@inertiajs/vue3'
 import AdminLayout from '@/layouts/AdminLayout.vue'
 import Button from '@/components/ui/Button.vue'
 import SelectSearchable from '@/components/ui/SelectSearchable.vue'

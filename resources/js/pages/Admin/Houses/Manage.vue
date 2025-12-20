@@ -1,4 +1,5 @@
 <template>
+  <Head title="Quản lý Phòng" />
   <AdminLayout title="Quản lý Phòng">
     <div class="space-y-6">
       <!-- Header -->
@@ -158,7 +159,7 @@
 
 <script setup>
 import { ref, watch } from 'vue'
-import { router, Link } from '@inertiajs/vue3'
+import { Head, router, Link } from '@inertiajs/vue3'
 import AdminLayout from '@/layouts/AdminLayout.vue'
 import RoomDiagram from '@/components/admin/RoomDiagram.vue'
 import RoomForm from '@/components/admin/RoomForm.vue'

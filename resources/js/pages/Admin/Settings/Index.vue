@@ -1,4 +1,5 @@
 <template>
+  <Head title="Cài đặt website" />
   <AdminLayout title="Cài đặt website">
     <div class="space-y-6">
       <!-- Header -->
@@ -11,10 +12,10 @@
 
       <!-- Flash Messages -->
       <div v-if="$page.props.flash?.success" class="p-4 bg-green-50 border border-green-200 rounded-lg">
-        <p class="text-green-800">{{ $page.props.flash.success }}</p>
+        <p class="text-green-800 whitespace-pre-line">{{ $page.props.flash.success }}</p>
       </div>
       <div v-if="$page.props.flash?.error" class="p-4 bg-red-50 border border-red-200 rounded-lg">
-        <p class="text-red-800">{{ $page.props.flash.error }}</p>
+        <p class="text-red-800 whitespace-pre-line">{{ $page.props.flash.error }}</p>
       </div>
 
       <!-- Form -->
@@ -401,7 +402,7 @@
 
 <script setup>
 import { ref, reactive, onMounted, watch } from 'vue'
-import { Link, useForm, router } from '@inertiajs/vue3'
+import { Head, Link, useForm, router } from '@inertiajs/vue3'
 import AdminLayout from '@/layouts/AdminLayout.vue'
 import {
   Cog6ToothIcon,

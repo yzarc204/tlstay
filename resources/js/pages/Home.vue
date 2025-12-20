@@ -1,4 +1,5 @@
 <template>
+  <Head title="Trang chủ" />
   <AppLayout>
   <div class="home">
     <!-- Slider Section -->
@@ -377,7 +378,7 @@
 
 <script setup>
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
-import { Link, router } from '@inertiajs/vue3'
+import { Head, Link, router } from '@inertiajs/vue3'
 import AppLayout from '@/layouts/AppLayout.vue'
 import HouseCard from '@/components/house/HouseCard.vue'
 import {

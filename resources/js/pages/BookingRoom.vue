@@ -1,4 +1,5 @@
 <template>
+  <Head :title="house?.name ? `Đặt phòng - ${house.name}` : 'Đặt phòng'" />
   <AppLayout>
     <div class="booking-room bg-light min-h-screen py-12">
     <div class="container mx-auto px-4">
@@ -699,7 +700,7 @@
 
 <script setup>
 import { ref, computed, watch, onMounted, onUnmounted, nextTick } from 'vue'
-import { router, useForm as useInertiaForm, Link } from '@inertiajs/vue3'
+import { Head, router, useForm as useInertiaForm, Link } from '@inertiajs/vue3'
 import { useForm, useField } from 'vee-validate'
 import * as yup from 'yup'
 import AppLayout from '@/layouts/AppLayout.vue'

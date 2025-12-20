@@ -1,4 +1,5 @@
 <template>
+  <Head title="Ký hợp đồng" />
   <AppLayout>
     <div class="sign-contract bg-light min-h-screen py-12">
       <div class="container mx-auto px-4 max-w-4xl">
@@ -209,7 +210,7 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { router, useForm, Link } from '@inertiajs/vue3'
+import { Head, router, useForm, Link } from '@inertiajs/vue3'
 import AppLayout from '@/layouts/AppLayout.vue'
 import SignaturePad from '@/components/ui/SignaturePad.vue'
 import {

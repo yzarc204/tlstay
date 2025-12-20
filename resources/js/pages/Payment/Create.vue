@@ -1,5 +1,6 @@
 <template>
-  <AppLayout title="Thanh toán đặt phòng">
+  <Head title="Thanh toán đặt phòng" />
+  <AppLayout>
     <div class="min-h-screen bg-gray-50 py-8">
       <div class="max-w-4xl mx-auto px-4">
         <!-- Header -->
@@ -154,7 +155,7 @@
 
 <script setup>
 import { ref } from 'vue'
-import { useForm } from '@inertiajs/vue3'
+import { Head, useForm } from '@inertiajs/vue3'
 import AppLayout from '@/layouts/AppLayout.vue'
 
 const props = defineProps({

@@ -109,6 +109,20 @@ class UserController extends Controller
             },
         ]);
 
+        $bookings = $user->bookings->map(function ($booking) {
+            return [
+                'id' => $booking->id,
+                'booking_code' => $booking->booking_code,
+                'status' => $booking->status,
+                'booking_status' => $booking->booking_status,
+                'start_date' => $booking->start_date->format('Y-m-d'),
+                'end_date' => $booking->end_date->format('Y-m-d'),
+                'total_price' => (float) $booking->total_price,
+                'payment_status' => $booking->payment_status,
+                'created_at' => $booking->created_at->format('Y-m-d H:i:s'),
+            ];
+        });
+
         return Inertia::render('Admin/Users/Show', [
             'user' => [
                 'id' => $user->id,
@@ -124,7 +138,7 @@ class UserController extends Controller
                 'permanent_address' => $user->permanent_address,
                 'date_of_birth' => $user->date_of_birth?->format('Y-m-d'),
                 'gender' => $user->gender,
-                'bookings' => $user->bookings,
+                'bookings' => $bookings,
                 'invoices' => $user->invoices,
             ],
         ]);

@@ -15,6 +15,7 @@ class Booking extends Model
         'start_date',
         'end_date',
         'status',
+        'booking_status',
         'total_price',
         'discount_amount',
         'tenant_name',

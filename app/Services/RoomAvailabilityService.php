@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Room;
+use App\Services\SystemTimeService;
 use Carbon\Carbon;
 
 class RoomAvailabilityService
@@ -47,60 +48,169 @@ class RoomAvailabilityService
 
     /**
      * Get status for a specific date range
-     * Returns 'occupied' if:
-     * 1. There are PAID bookings in that date range, OR
-     * 2. There is a tenant currently staying (rental_start_date and rental_end_date) that overlaps with the date range
-     * Returns 'available' otherwise
+     * Returns: 'available', 'upcoming', 'active', or 'past'
+     * - available: No bookings or tenants in the date range
+     * - upcoming: Has paid booking with start_date > endDate (booking starts after the range)
+     * - active: Has paid booking that overlaps with the date range OR has tenant overlapping
+     * - past: Has paid booking with end_date < startDate (booking ended before the range)
      * Pending or failed bookings are ignored
      *
      * @param Room $room
      * @param string|Carbon $startDate
      * @param string|Carbon $endDate
-     * @return string 'available' or 'occupied'
+     * @return string 'available', 'upcoming', 'active', or 'past'
      */
     public function getStatusForDates(Room $room, $startDate, $endDate): string
     {
         // Convert to Carbon if string
         $startDate = $this->parseDate($startDate);
         $endDate = $this->parseDate($endDate);
+        $today = SystemTimeService::today();
 
-        $hasBooking = $room->bookings()
+        // Check for overlapping bookings in the date range
+        $overlappingBooking = $room->bookings()
             ->where('payment_status', 'paid')
+            ->where('status', 'active')
             ->where(function ($query) use ($startDate, $endDate) {
                 $query->where('start_date', '<=', $endDate)
                       ->where('end_date', '>=', $startDate);
             })
-            ->exists();
+            ->first();
+
+        // Check for upcoming booking (starts after the end date)
+        $upcomingBooking = $room->bookings()
+            ->where('payment_status', 'paid')
+            ->where('status', 'active')
+            ->where('start_date', '>', $endDate)
+            ->orderBy('start_date', 'asc')
+            ->first();
+
+        // Check for past booking (ended before the start date)
+        $pastBooking = $room->bookings()
+            ->where('payment_status', 'paid')
+            ->where('status', 'active')
+            ->where('end_date', '<', $startDate)
+            ->orderBy('end_date', 'desc')
+            ->first();
 
         // Check if there is a tenant currently staying that overlaps with the date range
         $hasOverlappingTenant = $this->hasOverlappingTenant($room, $startDate, $endDate);
 
-        return ($hasBooking || $hasOverlappingTenant) ? 'occupied' : 'available';
+        // Priority: active > upcoming > past > available
+        if ($overlappingBooking || $hasOverlappingTenant) {
+            return 'active';
+        } elseif ($upcomingBooking) {
+            return 'upcoming';
+        } elseif ($pastBooking) {
+            return 'past';
+        }
+
+        return 'available';
     }
 
     /**
      * Get effective status based on bookings and current tenant
-     * Room is occupied if:
-     * 1. There's a paid booking that has reached check-in date and hasn't ended, OR
-     * 2. There's a tenant currently staying (rental_start_date <= today <= rental_end_date)
+     * Returns: 'available', 'upcoming', 'active', or 'past'
+     * - available: No bookings or tenants
+     * - upcoming: Has paid booking with start_date > today
+     * - active: Has paid booking with start_date <= today <= end_date OR has active tenant
+     * - past: Has paid booking with end_date < today OR tenant expired
      *
      * @param Room $room
-     * @return string 'available' or 'occupied'
+     * @return string 'available', 'upcoming', 'active', or 'past'
      */
     public function getEffectiveStatus(Room $room): string
     {
-        $today = now()->toDateString();
+        // Use system time (real or manual) instead of real time
+        $today = SystemTimeService::today();
+        $todayString = $today->toDateString();
         
+        // Check for upcoming bookings (start_date > today)
+        $upcomingBooking = $room->bookings()
+            ->where('payment_status', 'paid')
+            ->where('status', 'active')
+            ->where('start_date', '>', $todayString)
+            ->orderBy('start_date', 'asc')
+            ->first();
+
+        // Check for active bookings (start_date <= today <= end_date)
         $activeBooking = $room->bookings()
             ->where('payment_status', 'paid')
-            ->where('start_date', '<=', $today)
-            ->where('end_date', '>=', $today)
+            ->where('status', 'active')
+            ->where('start_date', '<=', $todayString)
+            ->where('end_date', '>=', $todayString)
+            ->first();
+
+        // Check for past bookings (end_date < today)
+        $pastBooking = $room->bookings()
+            ->where('payment_status', 'paid')
+            ->where('status', 'active')
+            ->where('end_date', '<', $todayString)
+            ->orderBy('end_date', 'desc')
             ->first();
 
         // Check if there is a tenant currently staying
-        $hasActiveTenant = $this->hasActiveTenant($room, $today);
+        $hasActiveTenant = $this->hasActiveTenant($room, $todayString);
 
-        return ($activeBooking || $hasActiveTenant) ? 'occupied' : 'available';
+        // Priority: active > upcoming > past > available
+        if ($activeBooking || $hasActiveTenant) {
+            return 'active';
+        } elseif ($upcomingBooking) {
+            return 'upcoming';
+        } elseif ($pastBooking) {
+            return 'past';
+        }
+
+        return 'available';
+    }
+
+    /**
+     * Get detailed status info for a room
+     *
+     * @param Room $room
+     * @return array
+     */
+    public function getDetailedStatus(Room $room): array
+    {
+        $today = SystemTimeService::today();
+        $todayString = $today->toDateString();
+        
+        $status = $this->getEffectiveStatus($room);
+        
+        $upcomingBooking = null;
+        $activeBooking = null;
+        $pastBooking = null;
+
+        if ($status === 'upcoming') {
+            $upcomingBooking = $room->bookings()
+                ->where('payment_status', 'paid')
+                ->where('status', 'active')
+                ->where('start_date', '>', $todayString)
+                ->orderBy('start_date', 'asc')
+                ->first();
+        } elseif ($status === 'active') {
+            $activeBooking = $room->bookings()
+                ->where('payment_status', 'paid')
+                ->where('status', 'active')
+                ->where('start_date', '<=', $todayString)
+                ->where('end_date', '>=', $todayString)
+                ->first();
+        } elseif ($status === 'past') {
+            $pastBooking = $room->bookings()
+                ->where('payment_status', 'paid')
+                ->where('status', 'active')
+                ->where('end_date', '<', $todayString)
+                ->orderBy('end_date', 'desc')
+                ->first();
+        }
+
+        return [
+            'status' => $status,
+            'upcoming_booking' => $upcomingBooking,
+            'active_booking' => $activeBooking,
+            'past_booking' => $pastBooking,
+            'has_active_tenant' => $this->hasActiveTenant($room, $todayString),
+        ];
     }
 
     /**

@@ -1,4 +1,5 @@
 <template>
+  <Head title="Quản lý Tài khoản" />
   <AdminLayout title="Quản lý Tài khoản">
     <div class="space-y-6">
       <!-- Header -->
@@ -403,7 +404,7 @@
 
 <script setup>
 import { ref } from 'vue'
-import { router, Link, usePage } from '@inertiajs/vue3'
+import { Head, router, Link, usePage } from '@inertiajs/vue3'
 import AdminLayout from '@/layouts/AdminLayout.vue'
 import Button from '@/components/ui/Button.vue'
 import { UsersIcon, EyeIcon, LockClosedIcon, LockOpenIcon, PlusIcon } from '@heroicons/vue/24/outline'

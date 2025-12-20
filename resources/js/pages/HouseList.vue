@@ -1,4 +1,5 @@
 <template>
+  <Head title="Danh sách nhà trọ" />
   <AppLayout>
     <div class="house-list py-12 bg-light min-h-screen">
       <div class="container mx-auto px-4">
@@ -260,7 +261,7 @@
 
 <script setup>
 import { ref, computed, watch } from 'vue'
-import { router } from '@inertiajs/vue3'
+import { Head, router } from '@inertiajs/vue3'
 import AppLayout from '@/layouts/AppLayout.vue'
 import HouseCard from '@/components/house/HouseCard.vue'
 import { getAmenityIcon, getAmenityName } from '@/utils/amenityIcons'

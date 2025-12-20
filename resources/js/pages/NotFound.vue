@@ -1,4 +1,5 @@
 <template>
+  <Head title="Không tìm thấy trang" />
   <AppLayout>
     <div class="min-h-[80vh] flex items-center justify-center py-12 px-4 bg-white">
       <div class="container mx-auto max-w-7xl">
@@ -45,7 +46,7 @@
 </template>
 
 <script setup>
-import { router } from '@inertiajs/vue3'
+import { Head, router } from '@inertiajs/vue3'
 import AppLayout from '@/layouts/AppLayout.vue'
 import { ArrowLeftIcon } from '@heroicons/vue/24/outline'
 import image404 from '@images/404.webp'

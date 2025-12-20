@@ -13,9 +13,9 @@
       <div class="absolute top-4 right-4">
         <span
           class="badge"
-          :class="room.status === 'available' ? 'bg-green-500 text-white' : 'bg-gray-500 text-white'"
+          :class="statusBadgeClass"
         >
-          {{ room.status === 'available' ? 'Trống' : 'Đã thuê' }}
+          {{ statusText }}
         </span>
       </div>
     </div>
@@ -112,6 +112,27 @@ const calculateMonthlyPrice = (pricePerDay) => {
   if (!pricePerDay) return 0
   return Math.round(pricePerDay * 30 * 0.8)
 }
+
+const statusText = computed(() => {
+  const statusMap = {
+    'available': 'Trống',
+    'upcoming': 'Sắp tới',
+    'active': 'Đang ở',
+    'past': 'Đã ở',
+  }
+  return statusMap[props.room.status] || 'N/A'
+})
+
+const statusBadgeClass = computed(() => {
+  const status = props.room.status
+  const classes = {
+    'available': 'bg-green-500 text-white',
+    'upcoming': 'bg-amber-500 text-white',
+    'active': 'bg-red-500 text-white',
+    'past': 'bg-gray-500 text-white',
+  }
+  return classes[status] || classes['available']
+})
 
 const goToBooking = () => {
   if (props.room.houseId) {

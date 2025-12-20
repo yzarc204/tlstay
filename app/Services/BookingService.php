@@ -7,6 +7,7 @@ use App\Models\House;
 use App\Models\Room;
 use App\Models\User;
 use App\Helpers\CodeGenerator;
+use App\Services\SystemTimeService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
@@ -111,7 +112,8 @@ class BookingService
         if (isset($data['start_date']) && isset($data['end_date'])) {
             $startDate = \Carbon\Carbon::parse($data['start_date']);
             $endDate = \Carbon\Carbon::parse($data['end_date']);
-            $today = \Carbon\Carbon::today();
+            // Use system time (real or manual) instead of real time
+            $today = SystemTimeService::today();
 
             if ($startDate->lt($today)) {
                 $errors['start_date'] = 'Ngày bắt đầu phải từ hôm nay trở đi.';

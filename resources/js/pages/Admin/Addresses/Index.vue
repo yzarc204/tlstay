@@ -1,4 +1,5 @@
 <template>
+  <Head title="Quản lý Địa điểm" />
   <AdminLayout title="Quản lý Địa điểm">
     <div class="space-y-6">
       <!-- Header -->
@@ -316,7 +317,7 @@
 
 <script setup>
 import { ref, computed } from 'vue'
-import { router, usePage } from '@inertiajs/vue3'
+import { Head, router, usePage } from '@inertiajs/vue3'
 import AdminLayout from '@/layouts/AdminLayout.vue'
 import Button from '@/components/ui/Button.vue'
 import {

@@ -1,4 +1,5 @@
 <template>
+  <Head title="Thêm banner mới" />
   <AdminLayout title="Thêm banner mới">
     <div class="space-y-6">
       <!-- Header -->
@@ -243,7 +244,7 @@
 
 <script setup>
 import { ref, reactive } from 'vue'
-import { Link, useForm } from '@inertiajs/vue3'
+import { Head, Link, useForm } from '@inertiajs/vue3'
 import AdminLayout from '@/layouts/AdminLayout.vue'
 import { ChevronLeftIcon, PhotoIcon } from '@heroicons/vue/24/outline'
 

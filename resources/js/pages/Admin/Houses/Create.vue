@@ -1,4 +1,5 @@
 <template>
+  <Head title="Thêm nhà trọ mới" />
   <AdminLayout title="Thêm nhà trọ mới">
     <div class="space-y-6">
       <!-- Header -->
@@ -407,7 +408,7 @@
 
 <script setup>
 import { ref } from 'vue'
-import { router, Link } from '@inertiajs/vue3'
+import { Head, router, Link } from '@inertiajs/vue3'
 import { useDropZone } from '@vueuse/core'
 import AdminLayout from '@/layouts/AdminLayout.vue'
 import SelectSearchable from '@/components/ui/SelectSearchable.vue'
