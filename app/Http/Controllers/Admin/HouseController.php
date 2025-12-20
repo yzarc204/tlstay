@@ -417,6 +417,10 @@ class HouseController extends Controller
 
     /**
      * Remove the specified house.
+     * 
+     * Note: This will delete the house even if it has tenants or occupied rooms.
+     * All related rooms, bookings, and tenant associations will be cascade deleted
+     * according to database foreign key constraints.
      */
     public function destroy(House $house): RedirectResponse
     {
