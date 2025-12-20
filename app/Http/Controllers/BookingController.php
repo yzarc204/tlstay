@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\House;
 use App\Models\Room;
 use App\Models\Booking;
+use App\Services\BookingService;
+use App\Services\RoomAvailabilityService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Auth;
@@ -24,18 +26,21 @@ class BookingController extends Controller
         $startDate = $request->query('start_date');
         $endDate = $request->query('end_date');
 
+        // Use RoomAvailabilityService to check room status
+        $roomAvailabilityService = app(RoomAvailabilityService::class);
+
         $rooms = $house->rooms()
             ->with('bookings') // Load bookings for status calculation
             ->orderBy('floor')
             ->orderBy('room_number')
             ->get()
-            ->map(function ($room) use ($startDate, $endDate) {
+            ->map(function ($room) use ($startDate, $endDate, $roomAvailabilityService) {
                 // If dates are provided, check status for that date range
                 // Otherwise, use current effective status
                 if ($startDate && $endDate) {
-                    $status = $room->getStatusForDates($startDate, $endDate);
+                    $status = $roomAvailabilityService->getStatusForDates($room, $startDate, $endDate);
                 } else {
-                    $status = $room->getEffectiveStatus();
+                    $status = $roomAvailabilityService->getEffectiveStatus($room);
                 }
                 
                 return [
@@ -80,6 +85,7 @@ class BookingController extends Controller
 
     public function store(Request $request)
     {
+        // Validate input
         $validator = Validator::make($request->all(), [
             'house_id' => 'required|exists:houses,id',
             'room_id' => 'required|exists:rooms,id',
@@ -94,62 +100,83 @@ class BookingController extends Controller
             return back()->withErrors($validator)->withInput();
         }
 
+        // Check authentication
         $user = Auth::user();
         if (!$user) {
             return redirect()->route('login')->with('error', 'Vui lòng đăng nhập để đặt phòng');
         }
 
-        // Kiểm tra thông tin cá nhân đầy đủ
-        if (!$user->hasCompletePersonalInfo()) {
-            return back()->withErrors([
-                'personal_info' => 'Vui lòng cập nhật đầy đủ thông tin cá nhân (Căn cước công dân, Ngày cấp CCCD, Nơi cấp CCCD, Địa chỉ thường trú, Ngày sinh, Giới tính) trước khi đặt phòng.'
-            ])->withInput();
-        }
-
-        // Check if room belongs to the house
+        // Load models
+        $house = House::findOrFail($request->house_id);
         $room = Room::findOrFail($request->room_id);
-        if ($room->house_id != $request->house_id) {
-            return back()->withErrors(['room_id' => 'Phòng không thuộc nhà trọ này'])->withInput();
+
+        // Use BookingService to handle booking creation
+        $bookingService = app(BookingService::class);
+
+        // Validate booking data
+        $validation = $bookingService->validateBookingData($user, $request->all());
+        if (!$validation['valid']) {
+            return back()->withErrors($validation['errors'])->withInput();
         }
 
-        // Check if room is available for the requested dates
-        // Room is available if:
-        // 1. No paid bookings overlap with the requested date range
-        // 2. No tenant is currently staying during the requested date range
-        if (!$room->isAvailableForDates($request->start_date, $request->end_date)) {
+        // Create booking using service
+        try {
+            $booking = $bookingService->createBooking(
+                $user,
+                $house,
+                $room,
+                $request->start_date,
+                $request->end_date,
+                $request->total_price,
+                $request->discount_amount ?? 0,
+                $request->notes
+            );
+        } catch (\Illuminate\Database\QueryException $e) {
+            \Log::error('Database error creating booking', [
+                'user_id' => $user->id,
+                'room_id' => $request->room_id,
+                'start_date' => $request->start_date,
+                'end_date' => $request->end_date,
+                'error' => $e->getMessage(),
+                'sql_state' => $e->errorInfo[0] ?? null,
+                'error_code' => $e->errorInfo[1] ?? null,
+                'trace' => $e->getTraceAsString(),
+            ]);
+            
+            // Handle duplicate entry error (SQLSTATE 23000)
+            if (isset($e->errorInfo[0]) && $e->errorInfo[0] == '23000') {
+                return back()->withErrors([
+                    'message' => 'Có lỗi xảy ra khi tạo đơn đặt phòng. Vui lòng thử lại.'
+                ])->withInput();
+            }
+            
             return back()->withErrors([
-                'room_id' => 'Phòng này đã được đặt hoặc đang có người ở trong khoảng thời gian bạn chọn. Vui lòng chọn khoảng thời gian khác.'
+                'message' => 'Có lỗi xảy ra khi tạo đơn đặt phòng. Vui lòng thử lại.'
+            ])->withInput();
+            
+        } catch (\Exception $e) {
+            \Log::error('Error creating booking', [
+                'user_id' => $user->id,
+                'room_id' => $request->room_id,
+                'start_date' => $request->start_date,
+                'end_date' => $request->end_date,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+            
+            return back()->withErrors([
+                'room_id' => $e->getMessage()
             ])->withInput();
         }
 
-        // Load house to generate booking code
-        $house = \App\Models\House::findOrFail($request->house_id);
+        // Success - redirect to payment page
+        // Flow: Chọn phòng → Đặt phòng → Thanh toán → Ký hợp đồng
+        if ($request->header('X-Inertia')) {
+            return Inertia::location(route('payment.create', ['bookingId' => $booking->id]));
+        }
         
-        // Generate booking code
-        $bookingCode = Booking::generateBookingCode($house, $user->id);
-        
-        // Create booking with pending payment
-        $booking = Booking::create([
-            'user_id' => $user->id,
-            'house_id' => $request->house_id,
-            'room_id' => $request->room_id,
-            'start_date' => $request->start_date,
-            'end_date' => $request->end_date,
-            'total_price' => $request->total_price,
-            'discount_amount' => $request->discount_amount ?? 0,
-            'tenant_name' => $user->name,
-            'notes' => $request->notes,
-            'status' => 'active',
-            'payment_status' => 'pending',
-            'booking_code' => $bookingCode,
-        ]);
-
-        // Don't update room status yet - wait for payment confirmation
-        // Room will be updated after successful payment
-
-        // Redirect to payment page
         return redirect()->route('payment.create', ['bookingId' => $booking->id])
-            ->with('info', 'Vui lòng thanh toán để hoàn tất đặt phòng.');
+            ->with('success', 'Đặt phòng thành công! Vui lòng thanh toán để hoàn tất.');
     }
 
     public function success(Request $request, $id)
@@ -166,11 +193,13 @@ class BookingController extends Controller
         }
 
         // Get invoices for this booking
-        $invoices = $booking->invoices()->orderBy('year')->orderBy('month')->get()->map(function ($invoice) {
+        $invoices = $booking->invoices()->orderBy('start_date', 'desc')->orderBy('end_date', 'desc')->get()->map(function ($invoice) {
             return [
                 'id' => $invoice->id,
                 'month' => $invoice->month,
                 'year' => $invoice->year,
+                'start_date' => $invoice->start_date ? $invoice->start_date->format('Y-m-d') : null,
+                'end_date' => $invoice->end_date ? $invoice->end_date->format('Y-m-d') : null,
                 'amount' => (float) $invoice->amount,
                 'electricity_amount' => (float) $invoice->electricity_amount,
                 'water_amount' => (float) $invoice->water_amount,

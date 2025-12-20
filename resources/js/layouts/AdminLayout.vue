@@ -13,6 +13,11 @@
         :icon="BuildingOffice2Icon"
       />
       <SidebarItem
+        href="/admin/occupied-rooms"
+        label="Quản lý phòng trọ đang thuê"
+        :icon="KeyIcon"
+      />
+      <SidebarItem
         href="/admin/addresses"
         label="Quản lý Địa chỉ"
         :icon="MapPinIcon"
@@ -63,7 +68,7 @@
     </Sidebar>
 
     <!-- Main Content -->
-    <div class="lg:pl-72">
+    <div class="lg:pl-80">
       <!-- Header -->
       <AdminHeader
         :title="title"
@@ -98,6 +103,7 @@ import {
   MapPinIcon,
   CalendarIcon,
   Cog6ToothIcon,
+  KeyIcon,
 } from '@heroicons/vue/24/outline'
 
 defineProps({

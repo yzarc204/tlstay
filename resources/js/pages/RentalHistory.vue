@@ -89,13 +89,13 @@
                   >
                     Chi tiết
                   </Link>
-                  <Link
+                  <button
                     v-if="booking.payment_status === 'pending'"
-                    :href="`/payment/${booking.id}`"
+                    @click="goToPayment(booking.id)"
                     class="px-4 py-2 border-2 border-primary text-primary rounded-lg hover:bg-primary hover:text-white transition-all"
                   >
                     Thanh toán
-                  </Link>
+                  </button>
                   <a
                     v-if="booking.payment_status === 'paid'"
                     :href="`/contract/${booking.id}`"
@@ -300,6 +300,14 @@ const getPaymentStatusBadgeClass = (status) => {
     cancelled: 'bg-gray-100 text-gray-600',
   }
   return classMap[status] || 'bg-gray-100 text-gray-600'
+}
+
+// Navigate to payment page
+const goToPayment = (bookingId) => {
+  router.visit(`/payment/${bookingId}`, {
+    preserveState: false,
+    preserveScroll: false,
+  })
 }
 
 // Auto-open contract PDF after successful payment

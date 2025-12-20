@@ -1,7 +1,7 @@
 <template>
   <aside
     :class="cn(
-      'fixed left-0 top-0 z-40 h-screen w-72 border-r bg-white transition-transform',
+      'fixed left-0 top-0 z-40 h-screen w-80 border-r bg-white transition-transform',
       isOpen ? 'translate-x-0' : '-translate-x-full',
       'lg:translate-x-0',
       attrs.class

@@ -38,29 +38,53 @@
             <div class="flex items-center justify-between mb-6 flex-shrink-0">
               <h2 class="text-2xl font-bold text-secondary">Sơ đồ phòng</h2>
               <div class="flex items-center space-x-4">
-                <div class="flex items-center space-x-2">
-                  <div class="w-4 h-4 bg-primary rounded"></div>
-                  <span class="text-sm text-gray-600">Phòng trống</span>
+                <div v-if="isCheckingRoomStatus" class="flex items-center space-x-2 text-primary">
+                  <svg class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  <span class="text-sm text-gray-600">Đang kiểm tra...</span>
                 </div>
-                <div class="flex items-center space-x-2">
-                  <div class="w-4 h-4 bg-gray-400 rounded"></div>
-                  <span class="text-sm text-gray-600">Đã thuê</span>
-                </div>
-                <div class="flex items-center space-x-2">
-                  <div class="w-4 h-4 bg-secondary-50 border-2 border-secondary rounded relative">
-                    <CheckIcon class="w-2.5 h-2.5 text-secondary absolute top-0.5 left-0.5" stroke-width="3" />
+                <div v-else class="flex items-center space-x-4">
+                  <div class="flex items-center space-x-2">
+                    <div class="w-4 h-4 bg-primary rounded"></div>
+                    <span class="text-sm text-gray-600">Phòng trống</span>
                   </div>
-                  <span class="text-sm text-gray-600">Đã chọn</span>
+                  <div class="flex items-center space-x-2">
+                    <div class="w-4 h-4 bg-gray-400 rounded"></div>
+                    <span class="text-sm text-gray-600">Đã thuê</span>
+                  </div>
+                  <div class="flex items-center space-x-2">
+                    <div class="w-4 h-4 bg-secondary-50 border-2 border-secondary rounded relative">
+                      <CheckIcon class="w-2.5 h-2.5 text-secondary absolute top-0.5 left-0.5" stroke-width="3" />
+                    </div>
+                    <span class="text-sm text-gray-600">Đã chọn</span>
+                  </div>
                 </div>
               </div>
             </div>
 
             <!-- Floors -->
-            <div class="space-y-6 overflow-y-auto flex-1 pr-2">
+            <div class="space-y-6 overflow-y-auto flex-1 pr-2 relative">
+              <!-- Loading overlay - less intrusive -->
+              <div
+                v-if="isCheckingRoomStatus"
+                class="absolute inset-0 bg-white/60 backdrop-blur-sm z-10 flex items-center justify-center rounded-lg pointer-events-none"
+              >
+                <div class="text-center bg-white/90 rounded-lg px-4 py-3 shadow-lg">
+                  <svg class="animate-spin h-6 w-6 text-primary mx-auto mb-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  <p class="text-sm text-gray-700 font-medium">Đang cập nhật trạng thái phòng...</p>
+                </div>
+              </div>
+              
               <div
                 v-for="floor in sortedFloors"
                 :key="floor"
-                class="border-2 border-gray-200 rounded-xl p-6 bg-white"
+                class="border-2 border-gray-200 rounded-xl p-6 bg-white transition-opacity duration-200"
+                :class="{ 'opacity-60': isCheckingRoomStatus }"
               >
                 <h3 class="text-xl font-bold text-secondary mb-4 flex items-center">
                   <BuildingOfficeIcon class="w-6 h-6 mr-2" />
@@ -203,8 +227,17 @@
               </div>
 
               <!-- Calculation Summary - Trước nút submit -->
-              <div v-if="selectedRoom && startDate && endDate" class="p-4 bg-light rounded-lg border-2 border-primary/20">
-                <h3 class="text-sm font-semibold text-gray-700 mb-3">Tóm tắt đặt phòng</h3>
+              <div v-if="selectedRoom && startDate && endDate" class="p-4 bg-light rounded-lg border-2 border-primary/20 transition-opacity duration-200" :class="{ 'opacity-60': isCheckingRoomStatus }">
+                <div class="flex items-center justify-between mb-3">
+                  <h3 class="text-sm font-semibold text-gray-700">Tóm tắt đặt phòng</h3>
+                  <div v-if="isCheckingRoomStatus" class="flex items-center space-x-2 text-xs text-gray-500">
+                    <svg class="animate-spin h-3 w-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                      <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <span>Đang cập nhật...</span>
+                  </div>
+                </div>
                 
                 <div class="space-y-2 mb-4">
                   <div class="flex justify-between text-sm">
@@ -1022,47 +1055,144 @@ watch(() => props.rooms, (newRooms) => {
   }
 }, { deep: true })
 
-// Watch start_date và end_date để reload rooms với status mới
-watch([() => startDate.value, () => endDate.value], ([newStartDate, newEndDate]) => {
-  // Only reload if both dates are selected
-  if (newStartDate && newEndDate) {
-    // Preserve selected room ID
-    const selectedRoomId = selectedRoom.value?.id
-    
-    router.reload({
-      only: ['rooms'],
-      data: {
-        start_date: newStartDate,
-        end_date: newEndDate,
-      },
-      preserveState: true,
-      preserveScroll: true,
-      onSuccess: () => {
-        // Restore selected room after reload, but only if it's still available
-        if (selectedRoomId) {
-          const room = props.rooms.find(r => r.id === selectedRoomId)
-          if (room) {
-            // Check if room is still available for the selected dates
-            if (room.status === 'available') {
-              selectedRoom.value = room
-              setFieldValue('room_id', room.id)
-              bookingForm.room_id = room.id
-            } else {
-              // Room is no longer available, deselect it silently
-              selectedRoom.value = null
-              setFieldValue('room_id', null)
-              bookingForm.room_id = null
-            }
+// Loading state for room status check
+const isCheckingRoomStatus = ref(false)
+let reloadTimeout = null
+let isReloading = false
+let currentRequestId = null
+let lastReloadedDates = { start: null, end: null }
+
+// Debounce function với cancel capability
+const debounce = (func, wait) => {
+  let timeout
+  const debounced = function executedFunction(...args) {
+    const later = () => {
+      clearTimeout(timeout)
+      func(...args)
+    }
+    clearTimeout(timeout)
+    timeout = setTimeout(later, wait)
+  }
+  debounced.cancel = () => {
+    clearTimeout(timeout)
+  }
+  return debounced
+}
+
+// Validate dates before reloading
+const validateDates = (startDate, endDate) => {
+  if (!startDate || !endDate) {
+    return false
+  }
+
+  const start = new Date(startDate + 'T00:00:00')
+  const end = new Date(endDate + 'T00:00:00')
+  
+  if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+    return false
+  }
+  
+  if (end <= start) {
+    return false
+  }
+
+  // Check if dates are the same as last reloaded (avoid unnecessary reloads)
+  if (lastReloadedDates.start === startDate && lastReloadedDates.end === endDate) {
+    return false
+  }
+
+  return true
+}
+
+// Function to reload rooms with new dates
+const reloadRoomsWithDates = (newStartDate, newEndDate) => {
+  // Validate dates before proceeding
+  if (!validateDates(newStartDate, newEndDate)) {
+    return
+  }
+
+  // Generate unique request ID
+  const requestId = Date.now() + Math.random()
+  currentRequestId = requestId
+
+  // Preserve selected room ID
+  const selectedRoomId = selectedRoom.value?.id
+  
+  isCheckingRoomStatus.value = true
+  isReloading = true
+  
+  // Update last reloaded dates
+  lastReloadedDates = { start: newStartDate, end: newEndDate }
+  
+  router.reload({
+    only: ['rooms'],
+    data: {
+      start_date: newStartDate,
+      end_date: newEndDate,
+    },
+    preserveState: true,
+    preserveScroll: true,
+    onSuccess: () => {
+      // Check if this request is still current (not superseded by a newer one)
+      if (currentRequestId !== requestId) {
+        return
+      }
+
+      isCheckingRoomStatus.value = false
+      isReloading = false
+      
+      // Restore selected room after reload, but only if it's still available
+      if (selectedRoomId) {
+        const room = props.rooms.find(r => r.id === selectedRoomId)
+        if (room) {
+          // Check if room is still available for the selected dates
+          if (room.status === 'available') {
+            selectedRoom.value = room
+            setFieldValue('room_id', room.id)
+            bookingForm.room_id = room.id
           } else {
-            // Room not found, deselect it
+            // Room is no longer available, deselect it silently
             selectedRoom.value = null
             setFieldValue('room_id', null)
             bookingForm.room_id = null
           }
+        } else {
+          // Room not found, deselect it
+          selectedRoom.value = null
+          setFieldValue('room_id', null)
+          bookingForm.room_id = null
         }
-      },
-    })
-  } else {
+      }
+    },
+    onError: () => {
+      // Check if this request is still current
+      if (currentRequestId !== requestId) {
+        return
+      }
+      isCheckingRoomStatus.value = false
+      isReloading = false
+    },
+    onFinish: () => {
+      // Check if this request is still current
+      if (currentRequestId !== requestId) {
+        return
+      }
+      isCheckingRoomStatus.value = false
+      isReloading = false
+    },
+  })
+}
+
+// Debounced version of reloadRoomsWithDates (reduced to 300ms for better responsiveness)
+const debouncedReloadRooms = debounce(reloadRoomsWithDates, 300)
+
+// Watch start_date và end_date để reload rooms với status mới
+watch([() => startDate.value, () => endDate.value], ([newStartDate, newEndDate], [oldStartDate, oldEndDate]) => {
+  // Cancel any pending debounced calls if dates are being cleared
+  if (!newStartDate || !newEndDate) {
+    debouncedReloadRooms.cancel()
+    isCheckingRoomStatus.value = false
+    
     // If dates are cleared, also clear selection if room becomes unavailable
     if (selectedRoom.value) {
       const room = props.rooms.find(r => r.id === selectedRoom.value.id)
@@ -1072,8 +1202,32 @@ watch([() => startDate.value, () => endDate.value], ([newStartDate, newEndDate])
         bookingForm.room_id = null
       }
     }
+    
+    // Reset last reloaded dates
+    lastReloadedDates = { start: null, end: null }
+    return
   }
-})
+
+  // Only reload if both dates are selected and valid
+  // Skip if dates haven't actually changed
+  if (newStartDate === oldStartDate && newEndDate === oldEndDate) {
+    return
+  }
+
+  // Quick validation before debouncing
+  const start = new Date(newStartDate + 'T00:00:00')
+  const end = new Date(newEndDate + 'T00:00:00')
+  
+  if (isNaN(start.getTime()) || isNaN(end.getTime()) || end <= start) {
+    // Invalid dates, cancel any pending reloads
+    debouncedReloadRooms.cancel()
+    isCheckingRoomStatus.value = false
+    return
+  }
+
+  // Debounce the reload
+  debouncedReloadRooms(newStartDate, newEndDate)
+}, { immediate: false })
 
 const handleBooking = handleSubmit(
   (formValues) => {
@@ -1101,17 +1255,32 @@ const handleBooking = handleSubmit(
     errorMessage.value = ''
 
     bookingForm.post('/booking', {
-      preserveScroll: true,
+      preserveScroll: false,
+      preserveState: false,
       onSuccess: () => {
-        showSuccessModal.value = true
+        // Inertia::location() should trigger a full page redirect
+        // If we reach here, the redirect should have already happened
+        // Just wait a moment to see if redirect occurs
       },
       onError: (errors) => {
         console.error('Booking errors:', errors)
+        
+        // Handle different error types
         if (errors.personal_info) {
           showPersonalInfoModal.value = true
           errorMessage.value = errors.personal_info
         } else if (errors.room_id) {
           errorMessage.value = errors.room_id
+        } else if (errors.message) {
+          errorMessage.value = errors.message
+        } else {
+          // Generic error
+          const errorMessages = Object.values(errors).flat()
+          if (errorMessages.length > 0) {
+            errorMessage.value = errorMessages[0]
+          } else {
+            errorMessage.value = 'Có lỗi xảy ra khi đặt phòng. Vui lòng thử lại.'
+          }
         }
       },
     })
@@ -1287,5 +1456,18 @@ onUnmounted(() => {
   window.removeEventListener('keydown', handleKeydown)
   // Restore body scroll in case component unmounts with modal open
   document.body.style.overflow = ''
+  
+  // Cancel any pending debounced calls
+  if (debouncedReloadRooms) {
+    debouncedReloadRooms.cancel()
+  }
+  
+  // Invalidate current request ID to prevent callbacks from executing
+  currentRequestId = null
+  
+  // Clear any pending timeouts
+  if (reloadTimeout) {
+    clearTimeout(reloadTimeout)
+  }
 })
 </script>

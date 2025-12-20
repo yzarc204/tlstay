@@ -456,37 +456,17 @@ const currentStep = ref(1)
 const step1Confirmed = ref(false)
 const step2Confirmed = ref(false)
 
-// Load confirmed steps and current step from localStorage
+// Always start from step 1 when entering the page
 onMounted(() => {
-  const step1 = localStorage.getItem(`booking_${props.booking.id}_step1`)
-  const step2 = localStorage.getItem(`booking_${props.booking.id}_step2`)
-  const savedStep = localStorage.getItem(`booking_${props.booking.id}_currentStep`)
-
-  if (step1 === 'confirmed') {
-    step1Confirmed.value = true
-  }
-  if (step2 === 'confirmed') {
-    step2Confirmed.value = true
-  }
-
-  // Determine current step based on confirmed steps
-  if (savedStep) {
-    const step = parseInt(savedStep)
-    if (step >= 1 && step <= 3) {
-      currentStep.value = step
-    }
-  } else {
-    // Auto-determine step based on confirmed status
-    if (!step1Confirmed.value) {
-      currentStep.value = 1
-    } else if (!step2Confirmed.value) {
-      currentStep.value = 2
-    } else if (!props.booking.contract_signed) {
-      currentStep.value = 3
-    } else {
-      currentStep.value = 3 // Show step 3 even if contract is signed
-    }
-  }
+  // Reset to step 1 and clear localStorage to ensure fresh start
+  currentStep.value = 1
+  step1Confirmed.value = false
+  step2Confirmed.value = false
+  
+  // Clear any saved progress for this booking
+  localStorage.removeItem(`booking_${props.booking.id}_step1`)
+  localStorage.removeItem(`booking_${props.booking.id}_step2`)
+  localStorage.removeItem(`booking_${props.booking.id}_currentStep`)
 })
 
 const goToStep = (step) => {

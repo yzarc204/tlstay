@@ -30,7 +30,8 @@ class RentalHistoryController extends Controller
                     'house_id' => $booking->house_id,
                     'room_id' => $booking->room_id,
                     'house_name' => $booking->house->name ?? 'Nhà trọ',
-                    'room_name' => $booking->room->name ?? 'Phòng ' . $booking->room_id,
+                    'room_name' => $booking->room->name ?? ('Phòng ' . ($booking->room->room_number ?? $booking->room_id)),
+                    'room_number' => $booking->room->room_number ?? null,
                     'start_date' => $booking->start_date->format('Y-m-d'),
                     'end_date' => $booking->end_date->format('Y-m-d'),
                     'status' => $this->getBookingStatus($booking),
@@ -45,16 +46,25 @@ class RentalHistoryController extends Controller
         // Fetch user invoices
         $invoices = Invoice::where('user_id', $user->id)
             ->with('booking')
-            ->orderBy('year', 'desc')
-            ->orderBy('month', 'desc')
+            ->orderBy('start_date', 'desc')
+            ->orderBy('end_date', 'desc')
             ->get()
             ->map(function ($invoice) {
+                $monthYear = '';
+                if ($invoice->start_date && $invoice->end_date) {
+                    $monthYear = $invoice->start_date->format('d/m/Y') . ' - ' . $invoice->end_date->format('d/m/Y');
+                } elseif ($invoice->month && $invoice->year) {
+                    $monthYear = "{$invoice->month}/{$invoice->year}";
+                }
+                
                 return [
                     'id' => $invoice->id,
                     'booking_id' => $invoice->booking_id,
                     'month' => $invoice->month,
                     'year' => $invoice->year,
-                    'month_year' => "{$invoice->month}/{$invoice->year}",
+                    'start_date' => $invoice->start_date ? $invoice->start_date->format('Y-m-d') : null,
+                    'end_date' => $invoice->end_date ? $invoice->end_date->format('Y-m-d') : null,
+                    'month_year' => $monthYear,
                     'room_rent' => (float) $invoice->amount,
                     'electricity' => (float) $invoice->electricity_amount,
                     'water' => (float) $invoice->water_amount,

@@ -136,4 +136,10 @@ Route::middleware(['auth', 'role:manager'])->group(function () {
         Route::put('/{address}', [\App\Http\Controllers\Admin\AddressController::class, 'update'])->name('update');
         Route::delete('/{address}', [\App\Http\Controllers\Admin\AddressController::class, 'destroy'])->name('destroy');
     });
+
+    // Occupied Rooms Management
+    Route::prefix('admin/occupied-rooms')->name('admin.occupied-rooms.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Admin\OccupiedRoomsController::class, 'index'])->name('index');
+        Route::post('/{room}/invoices', [\App\Http\Controllers\Admin\OccupiedRoomsController::class, 'createInvoice'])->name('invoices.create');
+    });
 });

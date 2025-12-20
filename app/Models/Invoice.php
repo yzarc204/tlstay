@@ -12,6 +12,8 @@ class Invoice extends Model
         'user_id',
         'month',
         'year',
+        'start_date',
+        'end_date',
         'amount',
         'electricity_amount',
         'water_amount',
@@ -29,6 +31,8 @@ class Invoice extends Model
             'electricity_amount' => 'decimal:2',
             'water_amount' => 'decimal:2',
             'other_fees' => 'decimal:2',
+            'start_date' => 'date',
+            'end_date' => 'date',
             'due_date' => 'date',
             'paid_at' => 'datetime',
         ];
@@ -51,10 +55,16 @@ class Invoice extends Model
     }
 
     /**
-     * Get month/year string for display.
+     * Get month/year string for display (backward compatibility).
      */
     public function getMonthYearAttribute(): string
     {
-        return "{$this->month}/{$this->year}";
+        if ($this->start_date && $this->end_date) {
+            return $this->start_date->format('d/m/Y') . ' - ' . $this->end_date->format('d/m/Y');
+        }
+        if ($this->month && $this->year) {
+            return "{$this->month}/{$this->year}";
+        }
+        return '';
     }
 }
