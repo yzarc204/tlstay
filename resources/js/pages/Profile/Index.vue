@@ -85,21 +85,13 @@
                   <label class="block text-sm font-medium text-gray-700 mb-2">
                     Ngày sinh <span class="text-red-500">*</span>
                   </label>
-                  <input
+                  <DateInput
                     v-model="form.date_of_birth"
-                    type="date"
                     :max="today"
-                    :class="[
-                      'w-full px-4 py-2 border rounded-lg focus:ring-2 focus:outline-none transition-colors',
-                      form.errors.date_of_birth
-                        ? 'border-red-500 focus:ring-red-500 focus:border-red-500'
-                        : 'border-gray-300 focus:ring-primary focus:border-transparent'
-                    ]"
+                    :error="form.errors.date_of_birth"
+                    placeholder="dd/mm/yyyy"
                     required
                   />
-                  <p v-if="form.errors.date_of_birth" class="mt-1 text-sm text-red-600">
-                    {{ form.errors.date_of_birth }}
-                  </p>
                 </div>
 
                 <div>
@@ -162,21 +154,13 @@
                   <label class="block text-sm font-medium text-gray-700 mb-2">
                     Ngày cấp <span class="text-red-500">*</span>
                   </label>
-                  <input
+                  <DateInput
                     v-model="form.id_card_issue_date"
-                    type="date"
                     :max="today"
-                    :class="[
-                      'w-full px-4 py-2 border rounded-lg focus:ring-2 focus:outline-none transition-colors',
-                      form.errors.id_card_issue_date
-                        ? 'border-red-500 focus:ring-red-500 focus:border-red-500'
-                        : 'border-gray-300 focus:ring-primary focus:border-transparent'
-                    ]"
+                    :error="form.errors.id_card_issue_date"
+                    placeholder="dd/mm/yyyy"
                     required
                   />
-                  <p v-if="form.errors.id_card_issue_date" class="mt-1 text-sm text-red-600">
-                    {{ form.errors.id_card_issue_date }}
-                  </p>
                 </div>
 
                 <div class="md:col-span-2">
@@ -334,6 +318,7 @@ import { computed, ref } from 'vue'
 import { Head, useForm, Link } from '@inertiajs/vue3'
 import AppLayout from '@/layouts/AppLayout.vue'
 import SignaturePad from '@/components/ui/SignaturePad.vue'
+import DateInput from '@/components/ui/DateInput.vue'
 import {
   UserIcon,
   IdentificationIcon,
