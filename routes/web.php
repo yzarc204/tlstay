@@ -6,6 +6,7 @@ use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\HouseController;
 use App\Http\Controllers\BookingController;
 use App\Http\Controllers\RentalHistoryController;
+use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\AdminController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -32,6 +33,10 @@ Route::middleware('auth')->get('/booking/{id}/success', [BookingController::clas
 Route::middleware('auth')->group(function () {
     Route::get('/payment/{bookingId}', [\App\Http\Controllers\PaymentController::class, 'create'])->name('payment.create');
     Route::post('/payment/{bookingId}/confirm', [\App\Http\Controllers\PaymentController::class, 'confirm'])->name('payment.confirm');
+    
+    // Invoice Payment Routes
+    Route::get('/payment/invoice/{invoiceId}', [\App\Http\Controllers\PaymentController::class, 'createInvoice'])->name('payment.invoice.create');
+    Route::post('/payment/invoice/{invoiceId}/confirm', [\App\Http\Controllers\PaymentController::class, 'confirmInvoice'])->name('payment.invoice.confirm');
 });
 
 // Bank Routes (public API)
@@ -53,6 +58,10 @@ Route::middleware('auth')->group(function () {
     Route::get('/contract/{booking}/sign', [\App\Http\Controllers\ContractController::class, 'showSign'])->name('contract.sign.show');
     Route::post('/contract/{booking}/sign', [\App\Http\Controllers\ContractController::class, 'sign'])->name('contract.sign');
     Route::get('/my-rentals', [RentalHistoryController::class, 'index'])->name('my-rentals');
+    
+    // Invoices
+    Route::get('/invoices', [InvoiceController::class, 'index'])->name('invoices.index');
+    Route::get('/invoices/{id}', [InvoiceController::class, 'show'])->name('invoices.show');
 });
 
 // Profile Routes
