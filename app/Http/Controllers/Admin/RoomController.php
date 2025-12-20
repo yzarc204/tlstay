@@ -27,8 +27,8 @@ class RoomController extends Controller
         $validated = $request->validated();
         $validated['house_id'] = $house->id;
 
-        // If status is not occupied, clear tenant_id and rental dates
-        if (!isset($validated['status']) || $validated['status'] !== 'occupied') {
+        // If status is not active, clear tenant_id and rental dates
+        if (!isset($validated['status']) || $validated['status'] !== 'active') {
             $validated['tenant_id'] = null;
             $validated['tenant_name'] = null;
             $validated['rental_start_date'] = null;
@@ -107,8 +107,8 @@ class RoomController extends Controller
         $oldRentalStartDate = $room->rental_start_date;
         $oldRentalEndDate = $room->rental_end_date;
 
-        // If status is not occupied, clear tenant_id and rental dates
-        if ($validated['status'] !== 'occupied') {
+        // If status is not active, clear tenant_id and rental dates
+        if ($validated['status'] !== 'active') {
             $validated['tenant_id'] = null;
             $validated['tenant_name'] = null;
             $validated['rental_start_date'] = null;
@@ -163,7 +163,7 @@ class RoomController extends Controller
                         ($oldRentalEndDate != $validated['rental_end_date']);
 
         if ($tenantChanged && 
-            $validated['status'] === 'occupied' && 
+            $validated['status'] === 'active' && 
             isset($validated['tenant_id']) && 
             $validated['tenant_id'] &&
             isset($validated['rental_start_date']) && 

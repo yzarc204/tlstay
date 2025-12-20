@@ -70,15 +70,20 @@
                   <label class="block text-sm font-medium text-gray-700 mb-2">
                     Giá thuê/ngày (VNĐ) <span class="text-red-500">*</span>
                   </label>
-                  <input
-                    v-model.number="newRoomForm.price_per_day"
-                    type="number"
-                    step="1000"
-                    min="0"
-                    required
-                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-                    placeholder="500000"
-                  />
+                  <div class="flex items-center gap-2">
+                    <input
+                      v-model.number="newRoomForm.price_per_day"
+                      type="number"
+                      step="1000"
+                      min="0"
+                      required
+                      class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                      placeholder="500000"
+                    />
+                    <span class="text-xs text-gray-500 font-medium whitespace-nowrap">
+                      {{ formatPriceDisplay(newRoomForm.price_per_day) }}
+                    </span>
+                  </div>
                 </div>
 
                 <div>
@@ -91,12 +96,12 @@
                     class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
                   >
                     <option value="available">Trống</option>
-                    <option value="occupied">Đã thuê</option>
+                    <option value="active">Đang thuê</option>
                   </select>
                 </div>
 
-                <!-- Tenant Selection (if occupied) -->
-                <div v-if="newRoomForm.status === 'occupied'">
+                <!-- Tenant Selection (if active) -->
+                <div v-if="newRoomForm.status === 'active'">
                   <label class="block text-sm font-medium text-gray-700 mb-2">
                     Người đang thuê <span class="text-red-500">*</span>
                   </label>
@@ -196,6 +201,17 @@ const newRoomForm = ref({
   tenant_id: null,
   tenant_name: '',
 })
+
+// Format price for display
+const formatPrice = (price) => {
+  if (!price) return '0'
+  return new Intl.NumberFormat('vi-VN').format(price)
+}
+
+const formatPriceDisplay = (price) => {
+  if (!price || price === 0) return ''
+  return formatPrice(price) + ' đ'
+}
 
 const handleSelectRoom = (room) => {
   selectedRoom.value = room

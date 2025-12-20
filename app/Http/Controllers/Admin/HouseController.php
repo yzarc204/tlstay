@@ -26,7 +26,7 @@ class HouseController extends Controller
                     $query->where('status', 'available');
                 },
                 'rooms as occupied_rooms_count' => function ($query) {
-                    $query->where('status', 'occupied');
+                    $query->where('status', 'active');
                 },
             ])
             ->orderBy('created_at', 'desc');
@@ -198,8 +198,45 @@ class HouseController extends Controller
             }
         ]);
 
-        // Group rooms by floor
-        $roomsByFloor = $house->rooms->groupBy('floor')->toArray();
+        // Use RoomAvailabilityService to calculate correct room status
+        $roomAvailabilityService = app(\App\Services\RoomAvailabilityService::class);
+        
+        // Map rooms and calculate status based on booking_status
+        $roomsByFloor = $house->rooms->map(function ($room) use ($roomAvailabilityService) {
+            // Calculate effective status (available or active)
+            $status = $roomAvailabilityService->getEffectiveStatus($room);
+            
+            return [
+                'id' => $room->id,
+                'room_number' => $room->room_number,
+                'floor' => $room->floor,
+                'price_per_day' => (float) $room->price_per_day,
+                'area' => (float) ($room->area ?? 0),
+                'status' => $status, // 'available' or 'active'
+                'amenities' => $room->amenities ?? [],
+                'images' => $room->images ?? [],
+                'tenant_id' => $room->tenant_id,
+                'tenant_name' => $room->tenant_name,
+                'rental_start_date' => $room->rental_start_date?->format('Y-m-d'),
+                'rental_end_date' => $room->rental_end_date?->format('Y-m-d'),
+                'tenant' => $room->tenant ? [
+                    'id' => $room->tenant->id,
+                    'name' => $room->tenant->name,
+                    'email' => $room->tenant->email,
+                    'phone' => $room->tenant->phone,
+                ] : null,
+                'bookings' => $room->bookings->map(function ($booking) {
+                    return [
+                        'id' => $booking->id,
+                        'booking_code' => $booking->booking_code,
+                        'booking_status' => $booking->booking_status, // 'upcoming', 'active', or 'past'
+                        'start_date' => $booking->start_date->format('Y-m-d'),
+                        'end_date' => $booking->end_date->format('Y-m-d'),
+                        'user_id' => $booking->user_id,
+                    ];
+                }),
+            ];
+        })->groupBy('floor')->toArray();
 
         // Get list of users (customers only) for tenant selection
         $users = \App\Models\User::where('role', 'customer')

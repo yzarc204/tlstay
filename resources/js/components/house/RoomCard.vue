@@ -116,20 +116,16 @@ const calculateMonthlyPrice = (pricePerDay) => {
 const statusText = computed(() => {
   const statusMap = {
     'available': 'Trống',
-    'upcoming': 'Sắp tới',
     'active': 'Đang ở',
-    'past': 'Đã ở',
   }
-  return statusMap[props.room.status] || 'N/A'
+  return statusMap[props.room.status] || 'Trống'
 })
 
 const statusBadgeClass = computed(() => {
   const status = props.room.status
   const classes = {
     'available': 'bg-green-500 text-white',
-    'upcoming': 'bg-amber-500 text-white',
     'active': 'bg-red-500 text-white',
-    'past': 'bg-gray-500 text-white',
   }
   return classes[status] || classes['available']
 })

@@ -226,9 +226,9 @@ const handleImagesUpdate = (images) => {
   form.value.images = [...images]
 }
 
-// Watch status change to clear tenant_id and rental dates when status is not occupied
+// Watch status change to clear tenant_id and rental dates when status is not active
 watch(() => form.value.status, (newStatus) => {
-  if (newStatus !== 'occupied') {
+  if (newStatus !== 'active') {
     form.value.tenant_id = null
     form.value.tenant_name = ''
     form.value.rental_start_date = ''
@@ -238,17 +238,109 @@ watch(() => form.value.status, (newStatus) => {
       activeTab.value = 'room'
     }
   } else {
-    // Tự động chuyển sang tab khách thuê khi chọn "Đã thuê"
+    // Tự động chuyển sang tab khách thuê khi chọn "Đang thuê"
     activeTab.value = 'tenant'
   }
 })
 
 
-const handleSubmit = () => {
+const handleSubmit = async () => {
+  // Show confirmation dialog for tenant tab
+  if (activeTab.value === 'tenant') {
+    try {
+      await confirm.show({
+        title: 'Cập nhật thông tin khách thuê',
+        message: 'Bạn có chắc chắn muốn cập nhật thông tin khách thuê? Hành động này có thể ảnh hưởng đến các hóa đơn và đặt phòng liên quan.',
+        confirmText: 'Cập nhật',
+        cancelText: 'Hủy',
+        confirmVariant: 'primary',
+      })
+    } catch (error) {
+      // User cancelled - do nothing
+      if (error.message !== 'USER_CANCELLED') {
+        console.error('Error showing confirm dialog:', error)
+      }
+      return
+    }
+  }
+
   isSubmitting.value = true
 
-  // Ensure images are included in form data
-  form.value.images = [...selectedRoomImages.value]
+  // Prepare data based on active tab
+  // Only submit fields relevant to the current tab
+  let submitData = {}
+  
+  if (activeTab.value === 'room') {
+    // Only submit room information (not tenant info, not images)
+    submitData = {
+      room_number: form.value.room_number,
+      floor: form.value.floor,
+      price_per_day: form.value.price_per_day,
+      status: form.value.status,
+      area: form.value.area,
+      amenities: form.value.amenities,
+    }
+    
+    // If status is not active, explicitly clear tenant info
+    if (form.value.status !== 'active') {
+      submitData.tenant_id = null
+      submitData.tenant_name = null
+      submitData.rental_start_date = null
+      submitData.rental_end_date = null
+    } else {
+      // If status is active, include existing tenant info from room (not from form)
+      // This ensures validation passes but doesn't change tenant info if user modified it
+      if (props.room?.tenant_id) {
+        submitData.tenant_id = props.room.tenant_id
+        submitData.tenant_name = props.room.tenant_name
+        if (props.room.rental_start_date) {
+          const d = new Date(props.room.rental_start_date)
+          submitData.rental_start_date = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+        }
+        if (props.room.rental_end_date) {
+          const d = new Date(props.room.rental_end_date)
+          submitData.rental_end_date = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+        }
+      }
+    }
+  } else if (activeTab.value === 'images') {
+    // Only submit images (keep other room info unchanged)
+    submitData = {
+      room_number: form.value.room_number,
+      floor: form.value.floor,
+      price_per_day: form.value.price_per_day,
+      status: form.value.status,
+      area: form.value.area,
+      amenities: form.value.amenities,
+      images: [...selectedRoomImages.value],
+    }
+    
+    // If status is active, include existing tenant info from room for validation
+    if (form.value.status === 'active' && props.room?.tenant_id) {
+      submitData.tenant_id = props.room.tenant_id
+      submitData.tenant_name = props.room.tenant_name
+      if (props.room.rental_start_date) {
+        const d = new Date(props.room.rental_start_date)
+        submitData.rental_start_date = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+      }
+      if (props.room.rental_end_date) {
+        const d = new Date(props.room.rental_end_date)
+        submitData.rental_end_date = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+      }
+    }
+  } else if (activeTab.value === 'tenant') {
+    // Only submit tenant information (keep room info and images unchanged)
+    submitData = {
+      room_number: form.value.room_number,
+      floor: form.value.floor,
+      price_per_day: form.value.price_per_day,
+      status: form.value.status,
+      tenant_id: form.value.tenant_id,
+      tenant_name: form.value.tenant_name,
+      rental_start_date: form.value.rental_start_date,
+      rental_end_date: form.value.rental_end_date,
+    }
+  }
 
   // Determine success message based on active tab
   const successMessages = {
@@ -258,7 +350,7 @@ const handleSubmit = () => {
   }
   const successMessage = successMessages[activeTab.value] || 'Cập nhật thành công'
 
-  router.put(`/admin/houses/${props.house.id}/rooms/${props.room.id}`, form.value, {
+  router.put(`/admin/houses/${props.house.id}/rooms/${props.room.id}`, submitData, {
     preserveScroll: true,
     onSuccess: () => {
       toast.success(successMessage)

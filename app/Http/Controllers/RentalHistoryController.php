@@ -67,12 +67,11 @@ class RentalHistoryController extends Controller
                     'start_date' => $invoice->start_date ? $invoice->start_date->format('Y-m-d') : null,
                     'end_date' => $invoice->end_date ? $invoice->end_date->format('Y-m-d') : null,
                     'month_year' => $monthYear,
-                    'room_rent' => (float) $invoice->amount,
+                    'room_rent' => 0, // Room rent is not included in invoices (already paid during booking)
                     'electricity' => (float) $invoice->electricity_amount,
                     'water' => (float) $invoice->water_amount,
                     'internet' => (float) ($invoice->other_fees ?? 0),
                     'total' => (float) (
-                        $invoice->amount +
                         $invoice->electricity_amount +
                         $invoice->water_amount +
                         ($invoice->other_fees ?? 0)

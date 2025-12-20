@@ -27,7 +27,7 @@ class StoreRoomRequest extends FormRequest
             'room_number' => ['required', 'string', 'max:50'],
             'floor' => ['required', 'integer', 'min:1'],
             'price_per_day' => ['required', 'numeric', 'min:0'],
-            'status' => ['required', 'in:available,occupied'],
+            'status' => ['required', 'in:available,active'],
             'area' => ['nullable', 'numeric', 'min:0'],
             'amenities' => ['nullable', 'array'],
             'amenities.*' => ['string'],
@@ -35,8 +35,8 @@ class StoreRoomRequest extends FormRequest
             'images.*' => ['nullable'], // Can be either image file or string URL
             'tenant_name' => ['nullable', 'string', 'max:255'],
             'tenant_id' => ['nullable', 'integer', 'exists:users,id'],
-            'rental_start_date' => ['nullable', 'date', 'required_if:status,occupied'],
-            'rental_end_date' => ['nullable', 'date', 'after:rental_start_date', 'required_if:status,occupied'],
+            'rental_start_date' => ['nullable', 'date', 'required_if:status,active'],
+            'rental_end_date' => ['nullable', 'date', 'after:rental_start_date', 'required_if:status,active'],
         ];
     }
 

@@ -143,10 +143,6 @@
 
                   <div class="space-y-2 text-sm mb-3">
                     <div class="flex justify-between">
-                      <span class="text-gray-600">Tiền phòng</span>
-                      <span class="font-medium">{{ formatPrice(invoice.room_rent) }}</span>
-                    </div>
-                    <div class="flex justify-between">
                       <span class="text-gray-600">Tiền điện</span>
                       <span class="font-medium">{{ formatPrice(invoice.electricity) }}</span>
                     </div>

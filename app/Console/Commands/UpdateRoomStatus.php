@@ -50,7 +50,7 @@ class UpdateRoomStatus extends Command
 
             // Step 1: Remove expired tenants (rental_end_date < today)
             $this->info("=== Bước 1: Xử lý phòng hết hạn ===");
-            $expiredRooms = Room::where('status', 'occupied')
+            $expiredRooms = Room::where('status', 'active')
                 ->whereNotNull('rental_end_date')
                 ->where('rental_end_date', '<', $today)
                 ->with(['house', 'tenant'])
@@ -165,7 +165,7 @@ class UpdateRoomStatus extends Command
                     $this->newLine();
 
                     $lockedRoom->update([
-                        'status' => 'occupied',
+                        'status' => 'active',
                         'tenant_id' => $booking->user_id,
                         'tenant_name' => $tenantName,
                         'rental_start_date' => $booking->start_date,
@@ -209,26 +209,26 @@ class UpdateRoomStatus extends Command
             // Step 3: Update booking_status for all paid bookings
             $this->info("=== Bước 3: Cập nhật trạng thái đặt phòng ===");
             $todayString = $today->toDateString();
-            
+
             // Update upcoming bookings (start_date > today)
             $upcomingCount = Booking::where('payment_status', 'paid')
                 ->where('status', 'active')
                 ->where('start_date', '>', $todayString)
                 ->update(['booking_status' => 'upcoming']);
-            
+
             // Update active bookings (start_date <= today <= end_date)
             $activeCount = Booking::where('payment_status', 'paid')
                 ->where('status', 'active')
                 ->where('start_date', '<=', $todayString)
                 ->where('end_date', '>=', $todayString)
                 ->update(['booking_status' => 'active']);
-            
+
             // Update past bookings (end_date < today)
             $pastCount = Booking::where('payment_status', 'paid')
                 ->where('status', 'active')
                 ->where('end_date', '<', $todayString)
                 ->update(['booking_status' => 'past']);
-            
+
             if ($upcomingCount > 0 || $activeCount > 0 || $pastCount > 0) {
                 $this->info("Đã cập nhật trạng thái cho {$upcomingCount} booking sắp tới, {$activeCount} booking đang ở, {$pastCount} booking đã ở.");
                 $this->newLine();
@@ -242,13 +242,13 @@ class UpdateRoomStatus extends Command
             // Display summary table
             $this->info("=== Tổng kết ===");
             $this->newLine();
-            
+
             $summaryData = [
                 ['Tổng số phòng đã xử lý', $processedRooms],
                 ['Phòng hết hạn (đã xóa khách)', $expiredTenants],
                 ['Phòng có khách chuyển vào', $newCheckIns],
             ];
-            
+
             $this->table(
                 ['Loại', 'Số lượng'],
                 $summaryData

@@ -169,21 +169,26 @@
               <label class="block text-sm font-medium text-gray-700 mb-2">
                 Giá thuê/ngày (VNĐ) <span class="text-red-500">*</span>
               </label>
-              <input
-                v-model.number="form.price_per_day"
-                type="number"
-                step="1000"
-                min="0"
-                required
-                :class="[
-                  'w-full px-4 py-2 border rounded-lg focus:ring-2 focus:outline-none transition-colors',
-                  errors.price_per_day
-                    ? 'border-red-500 focus:ring-red-500 focus:border-red-500'
-                    : 'border-gray-300 focus:ring-primary focus:border-transparent'
-                ]"
-                placeholder="500000"
-                @blur="validateField('price_per_day')"
-              />
+              <div class="flex items-center gap-2">
+                <input
+                  v-model.number="form.price_per_day"
+                  type="number"
+                  step="1000"
+                  min="0"
+                  required
+                  :class="[
+                    'flex-1 px-4 py-2 border rounded-lg focus:ring-2 focus:outline-none transition-colors',
+                    errors.price_per_day
+                      ? 'border-red-500 focus:ring-red-500 focus:border-red-500'
+                      : 'border-gray-300 focus:ring-primary focus:border-transparent'
+                  ]"
+                  placeholder="500000"
+                  @blur="validateField('price_per_day')"
+                />
+                <span class="text-xs text-gray-500 font-medium whitespace-nowrap">
+                  {{ formatPriceDisplay(form.price_per_day) }}
+                </span>
+              </div>
               <p v-if="errors.price_per_day" class="mt-1 text-sm text-red-600 flex items-center gap-1">
                 <ExclamationCircleIcon class="h-4 w-4" />
                 {{ errors.price_per_day }}
@@ -581,6 +586,17 @@ const totalImagesCount = computed(() => {
 const remainingImagesCount = computed(() => {
   return Math.max(0, 10 - totalImagesCount.value)
 })
+
+// Format price for display
+const formatPrice = (price) => {
+  if (!price) return '0'
+  return new Intl.NumberFormat('vi-VN').format(price)
+}
+
+const formatPriceDisplay = (price) => {
+  if (!price || price === 0) return ''
+  return formatPrice(price) + ' đ'
+}
 
 // Initialize form with house data
 onMounted(() => {

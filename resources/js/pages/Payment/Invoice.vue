@@ -57,10 +57,6 @@
               <h3 class="text-sm font-semibold text-gray-500 uppercase mb-4">Chi tiết hóa đơn</h3>
               <div class="space-y-3">
                 <div class="flex justify-between items-center">
-                  <span class="text-gray-700">Tiền phòng:</span>
-                  <span class="font-medium text-gray-900">{{ formatPrice(invoice.room_rent) }}</span>
-                </div>
-                <div class="flex justify-between items-center">
                   <span class="text-gray-700">Tiền điện:</span>
                   <span class="font-medium text-gray-900">{{ formatPrice(invoice.electricity_amount) }}</span>
                 </div>

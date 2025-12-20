@@ -202,19 +202,15 @@ const formatPrice = (price) => {
 const getStatusText = (status) => {
   const statusMap = {
     'available': 'Trống',
-    'upcoming': 'Sắp tới',
     'active': 'Đang ở',
-    'past': 'Đã ở',
   }
-  return statusMap[status] || 'N/A'
+  return statusMap[status] || 'Trống'
 }
 
 const getStatusBadgeClass = (status) => {
   const classes = {
     'available': 'bg-green-100 text-green-800',
-    'upcoming': 'bg-amber-100 text-amber-800',
     'active': 'bg-red-100 text-red-800',
-    'past': 'bg-gray-100 text-gray-600',
   }
   return classes[status] || classes['available']
 }
@@ -222,11 +218,8 @@ const getStatusBadgeClass = (status) => {
 const getRoomStatusClass = (status) => {
   if (status === 'active') {
     return 'border-red-300 bg-red-50 hover:border-red-400'
-  } else if (status === 'upcoming') {
-    return 'border-amber-300 bg-amber-50 hover:border-amber-400'
-  } else if (status === 'past') {
-    return 'border-gray-300 bg-gray-50 hover:border-gray-400'
   } else {
+    // Default to available style
     return 'border-gray-200 bg-gray-50 hover:border-gray-300 hover:shadow-sm'
   }
 }

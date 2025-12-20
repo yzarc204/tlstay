@@ -47,20 +47,25 @@
       <label class="block text-sm font-medium text-gray-700 mb-2">
         Giá thuê/ngày (VNĐ) <span class="text-red-500">*</span>
       </label>
-      <input
-        :value="modelValue.price_per_day"
-        @input="$emit('update:modelValue', { ...modelValue, price_per_day: $event.target.value })"
-        type="number"
-        step="1000"
-        min="0"
-        required
-        :class="[
-          'w-full px-4 py-2 border rounded-lg focus:ring-2 focus:outline-none transition-colors',
-          errors.price_per_day
-            ? 'border-red-500 focus:ring-red-500'
-            : 'border-gray-300 focus:ring-primary'
-        ]"
-      />
+      <div class="flex items-center gap-2">
+        <input
+          :value="modelValue.price_per_day"
+          @input="$emit('update:modelValue', { ...modelValue, price_per_day: $event.target.value })"
+          type="number"
+          step="1000"
+          min="0"
+          required
+          :class="[
+            'flex-1 px-4 py-2 border rounded-lg focus:ring-2 focus:outline-none transition-colors',
+            errors.price_per_day
+              ? 'border-red-500 focus:ring-red-500'
+              : 'border-gray-300 focus:ring-primary'
+          ]"
+        />
+        <span class="text-xs text-gray-500 font-medium whitespace-nowrap">
+          {{ formatPriceDisplay(modelValue.price_per_day) }}
+        </span>
+      </div>
       <p v-if="errors.price_per_day" class="mt-1 text-sm text-red-600">{{ errors.price_per_day }}</p>
     </div>
 
@@ -100,7 +105,7 @@
         ]"
       >
         <option value="available">Trống</option>
-        <option value="occupied">Đã thuê</option>
+        <option value="active">Đang thuê</option>
       </select>
       <p v-if="errors.status" class="mt-1 text-sm text-red-600">{{ errors.status }}</p>
     </div>
@@ -142,6 +147,17 @@
 
 <script setup>
 import { computed } from 'vue'
+
+// Format price for display
+const formatPrice = (price) => {
+  if (!price) return '0'
+  return new Intl.NumberFormat('vi-VN').format(price)
+}
+
+const formatPriceDisplay = (price) => {
+  if (!price || price === 0) return ''
+  return formatPrice(price) + ' đ'
+}
 
 const props = defineProps({
   modelValue: {

@@ -85,6 +85,12 @@
             >
               <DocumentTextIcon class="w-5 h-5" />
               <span>Hóa đơn</span>
+              <span
+                v-if="pendingInvoicesCount > 0"
+                class="flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-xs font-bold text-white"
+              >
+                {{ pendingInvoicesCount > 99 ? '99+' : pendingInvoicesCount }}
+              </span>
             </Link>
             <button
               @click="handleLogout"
@@ -231,6 +237,12 @@
                 >
                   <DocumentTextIcon class="w-5 h-5 text-primary" />
                   <span class="font-medium">Hóa đơn</span>
+                  <span
+                    v-if="pendingInvoicesCount > 0"
+                    class="flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-xs font-bold text-white"
+                  >
+                    {{ pendingInvoicesCount > 99 ? '99+' : pendingInvoicesCount }}
+                  </span>
                 </Link>
               </div>
 
@@ -274,6 +286,7 @@ const page = usePage()
 const { isManager } = useAuth()
 const menuOpen = ref(false)
 const userDropdownOpen = ref(false)
+const pendingInvoicesCount = computed(() => page.props.pendingInvoicesCount || 0)
 
 // Get site name from settings
 const siteName = computed(() => {

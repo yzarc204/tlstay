@@ -1,9 +1,9 @@
 <template>
   <div class="space-y-4">
-    <div v-if="form.status !== 'occupied'" class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+    <div v-if="form.status !== 'active'" class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
       <p class="text-sm text-yellow-800">
         <span class="font-medium">Lưu ý:</span> Phòng đang ở trạng thái "Trống". 
-        Để thêm khách thuê, vui lòng chuyển trạng thái phòng sang "Đã thuê" trong tab "Thông tin phòng trọ".
+        Để thêm khách thuê, vui lòng chuyển trạng thái phòng sang "Đang thuê" trong tab "Thông tin phòng trọ".
       </p>
     </div>
 
@@ -57,6 +57,7 @@
         <div class="flex items-center justify-between mb-4">
           <h3 class="text-lg font-semibold text-gray-900">Hóa đơn điện nước</h3>
           <button
+            type="button"
             @click="showCreateForm = !showCreateForm"
             class="text-sm text-primary hover:text-primary-600 font-medium"
           >
@@ -119,7 +120,7 @@
         </div>
 
         <!-- Create Invoice Form -->
-        <div v-else class="space-y-4">
+        <form v-else @submit.prevent="handleCreateInvoice" class="space-y-4">
           <!-- Invoice Date Range -->
           <div class="grid grid-cols-2 gap-4">
             <div>
@@ -240,15 +241,14 @@
 
           <!-- Create Invoice Button -->
           <Button
-            type="button"
-            @click="handleCreateInvoice"
+            type="submit"
             :disabled="isCreatingInvoice"
             class="w-full"
           >
             <span v-if="isCreatingInvoice">Đang tạo...</span>
             <span v-else>Tạo hóa đơn</span>
           </Button>
-        </div>
+        </form>
       </div>
     </div>
   </div>

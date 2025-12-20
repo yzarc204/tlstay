@@ -38,8 +38,9 @@ class InvoiceController extends Controller
                 $monthYear = "{$invoice->month}/{$invoice->year}";
             }
 
+            // Total only includes utility fees (electricity, water, other fees)
+            // Room rent is not included as it's already paid during booking
             $total = (float) (
-                ($invoice->amount ?? 0) +
                 ($invoice->electricity_amount ?? 0) +
                 ($invoice->water_amount ?? 0) +
                 ($invoice->other_fees ?? 0)
@@ -54,7 +55,7 @@ class InvoiceController extends Controller
                 'start_date' => $invoice->start_date ? $invoice->start_date->format('Y-m-d') : null,
                 'end_date' => $invoice->end_date ? $invoice->end_date->format('Y-m-d') : null,
                 'month_year' => $monthYear,
-                'room_rent' => (float) ($invoice->amount ?? 0),
+                'room_rent' => 0, // Room rent is not included in invoices (already paid during booking)
                 'electricity_amount' => (float) ($invoice->electricity_amount ?? 0),
                 'water_amount' => (float) ($invoice->water_amount ?? 0),
                 'other_fees' => (float) ($invoice->other_fees ?? 0),

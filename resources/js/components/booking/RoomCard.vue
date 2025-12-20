@@ -50,8 +50,8 @@
       </span>
     </div>
 
-    <!-- Tenant Info (if active or past) -->
-    <div v-if="room.status === 'active' || room.status === 'past'" class="mt-1 pt-1 border-t text-center">
+    <!-- Tenant Info (if active) -->
+    <div v-if="room.status === 'active'" class="mt-1 pt-1 border-t text-center">
       <p class="text-[10px] text-gray-500">{{ room.tenant || 'N/A' }}</p>
     </div>
   </div>
@@ -77,11 +77,9 @@ const emit = defineEmits(['select'])
 const statusText = computed(() => {
   const statusMap = {
     'available': 'Trống',
-    'upcoming': 'Sắp tới',
     'active': 'Đang ở',
-    'past': 'Đã ở',
   }
-  return statusMap[props.room.status] || 'N/A'
+  return statusMap[props.room.status] || 'Trống'
 })
 
 const statusClasses = computed(() => {
@@ -92,20 +90,10 @@ const statusClasses = computed(() => {
       icon: 'text-primary',
       badge: 'bg-primary-100 text-primary-700',
     },
-    'upcoming': {
-      text: 'text-amber-600',
-      icon: 'text-amber-400',
-      badge: 'bg-amber-100 text-amber-700',
-    },
     'active': {
       text: 'text-red-600',
       icon: 'text-red-400',
       badge: 'bg-red-100 text-red-700',
-    },
-    'past': {
-      text: 'text-gray-400',
-      icon: 'text-gray-300',
-      badge: 'bg-gray-100 text-gray-500',
     },
   }
   return classes[status] || classes['available']
@@ -117,12 +105,11 @@ const roomClasses = computed(() => {
       return 'border-secondary bg-secondary-50 shadow-lg ring-2 ring-secondary-200 ring-offset-2'
     }
     return 'border-primary bg-primary-50 hover:bg-primary-100 hover:shadow-lg'
-  } else if (props.room.status === 'upcoming') {
-    return 'border-amber-300 bg-amber-50 cursor-not-allowed opacity-80'
   } else if (props.room.status === 'active') {
     return 'border-red-300 bg-red-50 cursor-not-allowed opacity-80'
   } else {
-    return 'border-gray-300 bg-gray-50 cursor-not-allowed opacity-60'
+    // Default to available style if status is unknown
+    return 'border-primary bg-primary-50 hover:bg-primary-100 hover:shadow-lg'
   }
 })
 

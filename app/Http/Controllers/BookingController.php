@@ -61,12 +61,10 @@ class BookingController extends Controller
             return $room['status'] === 'available';
         })->count();
         
-        // Calculate rooms by status for display
+        // Calculate rooms by status for display (only available and active)
         $roomsByStatus = [
             'available' => $rooms->filter(fn($r) => $r['status'] === 'available')->count(),
-            'upcoming' => $rooms->filter(fn($r) => $r['status'] === 'upcoming')->count(),
             'active' => $rooms->filter(fn($r) => $r['status'] === 'active')->count(),
-            'past' => $rooms->filter(fn($r) => $r['status'] === 'past')->count(),
         ];
 
         $houseData = [

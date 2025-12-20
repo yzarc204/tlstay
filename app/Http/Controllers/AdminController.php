@@ -22,7 +22,7 @@ class AdminController extends Controller
         $stats = [
             'total_houses' => House::count(),
             'total_rooms' => Room::count(),
-            'occupied_rooms' => Room::where('status', 'occupied')->count(),
+            'occupied_rooms' => Room::where('status', 'active')->count(),
             'available_rooms' => Room::where('status', 'available')->count(),
             'total_bookings' => Booking::count(),
             'pending_bookings' => Booking::where('status', 'pending')->count(),

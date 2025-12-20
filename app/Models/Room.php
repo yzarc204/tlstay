@@ -94,8 +94,8 @@ class Room extends Model
 
     /**
      * Get status for a specific date range
-     * Returns 'occupied' if:
-     * 1. There are PAID bookings in that date range, OR
+     * Returns 'active' if:
+     * 1. There are PAID bookings with booking_status = 'active' in that date range, OR
      * 2. There is a tenant currently staying (rental_start_date and rental_end_date) that overlaps with the date range
      * Returns 'available' otherwise
      * Pending or failed bookings are ignored
@@ -109,9 +109,10 @@ class Room extends Model
 
     /**
      * Get effective status based on bookings and current tenant
-     * Room is occupied if:
-     * 1. There's a paid booking that has reached check-in date and hasn't ended, OR
+     * Room is active if:
+     * 1. There's a paid booking with booking_status = 'active' (currently staying), OR
      * 2. There's a tenant currently staying (rental_start_date <= today <= rental_end_date)
+     * Returns 'available' otherwise
      * 
      * @deprecated This method now delegates to RoomAvailabilityService for better maintainability
      */

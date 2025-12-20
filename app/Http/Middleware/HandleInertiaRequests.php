@@ -44,6 +44,14 @@ class HandleInertiaRequests extends Middleware
         // Get active social links
         $socialLinks = \App\Models\SocialLink::getActive();
         
+        // Get pending invoices count for customer
+        $pendingInvoicesCount = 0;
+        if ($user && $user->role === 'customer') {
+            $pendingInvoicesCount = \App\Models\Invoice::where('user_id', $user->id)
+                ->where('status', 'pending')
+                ->count();
+        }
+        
         return [
             ...parent::share($request),
             'auth' => [
@@ -73,6 +81,7 @@ class HandleInertiaRequests extends Middleware
                     'url' => $link->url,
                 ];
             }),
+            'pendingInvoicesCount' => $pendingInvoicesCount,
         ];
     }
 }

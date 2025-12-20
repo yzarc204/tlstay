@@ -130,11 +130,7 @@
                   </div>
                 </div>
 
-                <div class="mt-4 grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                  <div class="flex justify-between">
-                    <span class="text-gray-600">Tiền phòng:</span>
-                    <span class="font-medium">{{ formatPrice(invoice.room_rent) }}</span>
-                  </div>
+                <div class="mt-4 grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
                   <div class="flex justify-between">
                     <span class="text-gray-600">Tiền điện:</span>
                     <span class="font-medium">{{ formatPrice(invoice.electricity_amount) }}</span>
