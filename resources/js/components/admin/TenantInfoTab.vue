@@ -257,6 +257,7 @@
 <script setup>
 import { ref, computed, watch, onMounted } from 'vue'
 import { router } from '@inertiajs/vue3'
+import { useToast } from '@/composables/useToast'
 import Button from '@/components/ui/Button.vue'
 import SelectSearchable from '@/components/ui/SelectSearchable.vue'
 import DateInput from '@/components/ui/DateInput.vue'
@@ -289,6 +290,8 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['update:form'])
+
+const toast = useToast()
 
 // Invoice form
 const invoiceForm = ref({
@@ -438,6 +441,7 @@ const handleCreateInvoice = () => {
     {
       preserveScroll: true,
       onSuccess: () => {
+        toast.success('Tạo hóa đơn điện nước thành công')
         // Reset form
         invoiceForm.value = {
           start_date: '',
@@ -455,6 +459,7 @@ const handleCreateInvoice = () => {
         loadInvoices()
       },
       onError: (errors) => {
+        toast.error('Có lỗi xảy ra khi tạo hóa đơn')
         invoiceErrors.value = errors
         isCreatingInvoice.value = false
       },

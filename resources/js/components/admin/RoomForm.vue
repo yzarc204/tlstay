@@ -115,6 +115,8 @@
 <script setup>
 import { ref, watch, computed } from 'vue'
 import { router } from '@inertiajs/vue3'
+import { useToast } from '@/composables/useToast'
+import { useConfirm } from '@/composables/useConfirm'
 import Button from '@/components/ui/Button.vue'
 import SidePanel from '@/components/ui/SidePanel.vue'
 import { XMarkIcon } from '@heroicons/vue/24/outline'
@@ -137,6 +139,8 @@ const props = defineProps({
 
 const emit = defineEmits(['close'])
 
+const toast = useToast()
+const confirm = useConfirm()
 const activeTab = ref('room')
 
 const form = ref({
@@ -246,24 +250,50 @@ const handleSubmit = () => {
   // Ensure images are included in form data
   form.value.images = [...selectedRoomImages.value]
 
+  // Determine success message based on active tab
+  const successMessages = {
+    room: 'Cập nhật thông tin phòng thành công',
+    images: 'Cập nhật hình ảnh phòng thành công',
+    tenant: 'Cập nhật thông tin khách thuê thành công',
+  }
+  const successMessage = successMessages[activeTab.value] || 'Cập nhật thành công'
+
   router.put(`/admin/houses/${props.house.id}/rooms/${props.room.id}`, form.value, {
     preserveScroll: true,
+    onSuccess: () => {
+      toast.success(successMessage)
+    },
+    onError: () => {
+      toast.error('Có lỗi xảy ra khi cập nhật')
+    },
     onFinish: () => {
       isSubmitting.value = false
     },
   })
 }
 
-const handleDelete = () => {
-  if (!confirm('Bạn có chắc chắn muốn xóa phòng này?')) {
-    return
-  }
+const handleDelete = async () => {
+  try {
+    await confirm.show({
+      title: 'Xóa phòng',
+      message: 'Bạn có chắc chắn muốn xóa phòng này? Hành động này không thể hoàn tác.',
+      confirmText: 'Xóa',
+      cancelText: 'Hủy',
+      confirmVariant: 'danger',
+    })
 
-  router.delete(`/admin/houses/${props.house.id}/rooms/${props.room.id}`, {
-    preserveScroll: true,
-    onSuccess: () => {
-      emit('close')
-    },
-  })
+    // User confirmed, proceed with deletion
+    router.delete(`/admin/houses/${props.house.id}/rooms/${props.room.id}`, {
+      preserveScroll: true,
+      onSuccess: () => {
+        emit('close')
+      },
+    })
+  } catch (error) {
+    // User cancelled - do nothing
+    if (error.message !== 'USER_CANCELLED') {
+      console.error('Error showing confirm dialog:', error)
+    }
+  }
 }
 </script>

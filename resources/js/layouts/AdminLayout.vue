@@ -69,6 +69,15 @@
         <slot />
       </main>
     </div>
+    
+    <!-- Toast Container -->
+    <Toaster />
+    
+    <!-- Confirm Dialog -->
+    <ConfirmDialog />
+    
+    <!-- Flash Messages Handler -->
+    <FlashToaster />
   </div>
 </template>
 
@@ -77,6 +86,9 @@ import { ref } from 'vue'
 import Sidebar from '@/components/ui/Sidebar.vue'
 import SidebarItem from '@/components/ui/SidebarItem.vue'
 import AdminHeader from '@/components/ui/Header.vue'
+import Toaster from '@/components/ui/Toaster.vue'
+import ConfirmDialog from '@/components/ui/ConfirmDialog.vue'
+import FlashToaster from '@/components/FlashToaster.vue'
 import {
   HomeIcon,
   BuildingOffice2Icon,

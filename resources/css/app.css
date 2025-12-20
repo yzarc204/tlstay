@@ -403,3 +403,8 @@ select {
     /* --color-light: #1F2937; */
   }
 }
+
+/* Toast Notifications - Ensure highest z-index */
+.toast-container {
+  z-index: 9999 !important;
+}

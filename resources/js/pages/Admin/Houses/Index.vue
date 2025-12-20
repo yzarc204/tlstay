@@ -304,6 +304,7 @@ import { Link, router } from '@inertiajs/vue3'
 import AdminLayout from '@/layouts/AdminLayout.vue'
 import Button from '@/components/ui/Button.vue'
 import SelectSearchable from '@/components/ui/SelectSearchable.vue'
+import { useConfirm } from '@/composables/useConfirm'
 import {
   BuildingOffice2Icon,
   MapPinIcon,
@@ -397,16 +398,30 @@ const formatDate = (date) => {
   })
 }
 
-const handleDelete = (house) => {
-  if (!confirm(`Bạn có chắc chắn muốn xóa nhà trọ "${house.name}"?\n\nHành động này sẽ xóa tất cả phòng và đặt phòng liên quan.`)) {
-    return
-  }
+const confirm = useConfirm()
 
-  router.delete(`/admin/houses/${house.id}`, {
-    preserveScroll: true,
-    onSuccess: () => {
-      // Success message will be shown via Inertia flash message
-    },
-  })
+const handleDelete = async (house) => {
+  try {
+    await confirm.show({
+      title: 'Xóa nhà trọ',
+      message: `Bạn có chắc chắn muốn xóa nhà trọ "${house.name}"?\n\nHành động này sẽ xóa tất cả phòng và đặt phòng liên quan. Hành động này không thể hoàn tác.`,
+      confirmText: 'Xóa',
+      cancelText: 'Hủy',
+      confirmVariant: 'danger',
+    })
+
+    // User confirmed, proceed with deletion
+    router.delete(`/admin/houses/${house.id}`, {
+      preserveScroll: true,
+      onSuccess: () => {
+        // Success message will be shown via Inertia flash message
+      },
+    })
+  } catch (error) {
+    // User cancelled - do nothing
+    if (error.message !== 'USER_CANCELLED') {
+      console.error('Error showing confirm dialog:', error)
+    }
+  }
 }
 </script>
