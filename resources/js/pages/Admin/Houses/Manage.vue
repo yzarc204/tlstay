@@ -16,32 +16,27 @@
         </div>
       </div>
 
-      <!-- Main Content: Diagram + Form -->
-      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <!-- Left: Room Diagram -->
-        <div class="lg:col-span-2">
-          <RoomDiagram
-            ref="roomDiagramRef"
-            :rooms-by-floor="roomsByFloor"
-            :house="house"
-            @select-room="handleSelectRoom"
-            @add-room="handleAddRoomClick"
-            @add-floor="handleAddFloor"
-            @delete-floor="handleDeleteFloor"
-          />
-        </div>
-
-        <!-- Right: Room Form -->
-        <div class="lg:col-span-1">
-          <RoomForm
-            :room="selectedRoom"
-            :house="house"
-            :users="users"
-            :errors="errors"
-            @close="selectedRoom = null"
-          />
-        </div>
+      <!-- Main Content: Room Diagram -->
+      <div>
+        <RoomDiagram
+          ref="roomDiagramRef"
+          :rooms-by-floor="roomsByFloor"
+          :house="house"
+          @select-room="handleSelectRoom"
+          @add-room="handleAddRoomClick"
+          @add-floor="handleAddFloor"
+          @delete-floor="handleDeleteFloor"
+        />
       </div>
+
+      <!-- Room Form Side Panel -->
+      <RoomForm
+        :room="selectedRoom"
+        :house="house"
+        :users="users"
+        :errors="errors"
+        @close="selectedRoom = null"
+      />
 
       <!-- Add Room Modal -->
       <div

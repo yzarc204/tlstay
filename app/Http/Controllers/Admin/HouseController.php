@@ -190,7 +190,11 @@ class HouseController extends Controller
     {
         $house->load([
             'rooms' => function ($query) {
-                $query->with('tenant')->orderBy('floor')->orderBy('room_number');
+                $query->with(['tenant', 'bookings' => function ($bookingQuery) {
+                    $bookingQuery->where('status', 'active')
+                        ->where('payment_status', 'paid')
+                        ->orderBy('created_at', 'desc');
+                }])->orderBy('floor')->orderBy('room_number');
             }
         ]);
 

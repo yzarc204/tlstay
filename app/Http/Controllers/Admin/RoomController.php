@@ -4,10 +4,15 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\StoreRoomRequest;
+use App\Models\Booking;
 use App\Models\House;
+use App\Models\Invoice;
 use App\Models\Room;
+use Carbon\Carbon;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Validator;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -96,6 +101,11 @@ class RoomController extends Controller
     {
         $validated = $request->validated();
 
+        // Store old tenant_id to check if it changed
+        $oldTenantId = $room->tenant_id;
+        $oldRentalStartDate = $room->rental_start_date;
+        $oldRentalEndDate = $room->rental_end_date;
+
         // If status is not occupied, clear tenant_id and rental dates
         if ($validated['status'] !== 'occupied') {
             $validated['tenant_id'] = null;
@@ -143,7 +153,52 @@ class RoomController extends Controller
             $validated['amenities'] = array_filter($validated['amenities']);
         }
 
+        // Update room
         $room->update($validated);
+
+        // Check if tenant information changed and create booking if needed
+        $tenantChanged = ($oldTenantId != $validated['tenant_id']) || 
+                        ($oldRentalStartDate != $validated['rental_start_date']) || 
+                        ($oldRentalEndDate != $validated['rental_end_date']);
+
+        if ($tenantChanged && 
+            $validated['status'] === 'occupied' && 
+            isset($validated['tenant_id']) && 
+            $validated['tenant_id'] &&
+            isset($validated['rental_start_date']) && 
+            $validated['rental_start_date'] &&
+            isset($validated['rental_end_date']) && 
+            $validated['rental_end_date']) {
+            
+            // Create booking with 0 price and paid status
+            DB::transaction(function () use ($room, $house, $validated) {
+                $tenant = \App\Models\User::find($validated['tenant_id']);
+                
+                if ($tenant) {
+                    // Create booking
+                    $booking = Booking::create([
+                        'user_id' => $tenant->id,
+                        'house_id' => $house->id,
+                        'room_id' => $room->id,
+                        'start_date' => $validated['rental_start_date'],
+                        'end_date' => $validated['rental_end_date'],
+                        'total_price' => 0,
+                        'discount_amount' => 0,
+                        'tenant_name' => $validated['tenant_name'] ?? $tenant->name,
+                        'status' => 'active',
+                        'payment_status' => 'paid',
+                        'payment_method' => 'manual',
+                        'paid_at' => now(),
+                        'booking_code' => null,
+                    ]);
+
+                    // Set booking_code to booking ID
+                    $booking->update([
+                        'booking_code' => (string) $booking->id,
+                    ]);
+                }
+            });
+        }
 
         return back()->with('success', 'Đã cập nhật phòng thành công.');
     }
@@ -161,5 +216,154 @@ class RoomController extends Controller
         ]);
 
         return back()->with('success', 'Đã xóa phòng thành công.');
+    }
+
+    /**
+     * Create invoice for a room (electricity, water, other fees).
+     */
+    public function createInvoice(Request $request, House $house, Room $room): RedirectResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'start_date' => 'required|date',
+            'end_date' => 'required|date|after:start_date',
+            'electricity_amount' => 'required|numeric|min:0',
+            'water_amount' => 'required|numeric|min:0',
+            'other_fees' => 'nullable|numeric|min:0',
+            'due_date' => 'nullable|date',
+            'notes' => 'nullable|string|max:1000',
+        ]);
+
+        if ($validator->fails()) {
+            return back()->withErrors($validator)->withInput();
+        }
+
+        // Check if room has tenant
+        if (!$room->tenant_id) {
+            return back()->withErrors(['tenant_id' => 'Phòng này không có khách thuê.'])->withInput();
+        }
+
+        $startDate = Carbon::parse($request->start_date);
+        $endDate = Carbon::parse($request->end_date);
+
+        // Verify date range is within tenant rental period
+        if ($room->rental_start_date && $room->rental_end_date) {
+            if ($startDate->lt($room->rental_start_date) || $endDate->gt($room->rental_end_date)) {
+                return back()->withErrors(['start_date' => 'Khoảng thời gian tính hóa đơn phải nằm trong thời gian thuê phòng.'])->withInput();
+            }
+        }
+
+        // Find active booking for this room and tenant
+        $booking = Booking::where('room_id', $room->id)
+            ->where('user_id', $room->tenant_id)
+            ->where('status', 'active')
+            ->where('payment_status', 'paid')
+            ->where(function ($query) use ($startDate, $endDate) {
+                $query->where(function ($q) use ($startDate, $endDate) {
+                    $q->where('start_date', '<=', $endDate)
+                      ->where('end_date', '>=', $startDate);
+                });
+            })
+            ->first();
+
+        // Check if invoice already exists with overlapping date range
+        $query = Invoice::where('user_id', $room->tenant_id)
+            ->where(function ($q) use ($startDate, $endDate) {
+                $q->where(function ($overlapQuery) use ($startDate, $endDate) {
+                    $overlapQuery->whereNotNull('start_date')
+                       ->whereNotNull('end_date')
+                       ->where('start_date', '<=', $endDate)
+                       ->where('end_date', '>=', $startDate);
+                });
+            });
+
+        if ($booking) {
+            $query->where('booking_id', $booking->id);
+        } else {
+            $query->whereNull('booking_id');
+        }
+
+        $existingInvoice = $query->first();
+
+        if ($existingInvoice) {
+            return back()->withErrors(['start_date' => 'Đã tồn tại hóa đơn trong khoảng thời gian này.'])->withInput();
+        }
+
+        // Calculate total amount (electricity + water + other fees)
+        // Note: amount field in Invoice model represents room rent, but for utility invoices it's 0
+        // The total utility cost is electricity_amount + water_amount + other_fees
+        $totalAmount = (float) $request->electricity_amount 
+                     + (float) $request->water_amount 
+                     + (float) ($request->other_fees ?? 0);
+
+        // Create invoice
+        $invoice = Invoice::create([
+            'booking_id' => $booking ? $booking->id : null,
+            'user_id' => $room->tenant_id,
+            'start_date' => $startDate,
+            'end_date' => $endDate,
+            'month' => $startDate->month,
+            'year' => $startDate->year,
+            'amount' => 0, // Room rent is 0 for utility invoices (only electricity/water/other fees)
+            'electricity_amount' => $request->electricity_amount,
+            'water_amount' => $request->water_amount,
+            'other_fees' => $request->other_fees ?? 0,
+            'status' => 'pending',
+            'due_date' => $request->due_date ? Carbon::parse($request->due_date) : Carbon::now()->addDays(7),
+            'notes' => $request->notes,
+        ]);
+
+        return back()->with('success', 'Tạo hóa đơn điện nước thành công!');
+    }
+
+    /**
+     * Get invoices for a room.
+     */
+    public function getInvoices(House $house, Room $room): \Illuminate\Http\JsonResponse
+    {
+        if (!$room->tenant_id) {
+            return response()->json(['invoices' => []]);
+        }
+
+        // Find active booking for this room and tenant
+        $booking = Booking::where('room_id', $room->id)
+            ->where('user_id', $room->tenant_id)
+            ->where('status', 'active')
+            ->where('payment_status', 'paid')
+            ->first();
+
+        // Get invoices for this tenant and room
+        $query = Invoice::where('user_id', $room->tenant_id)
+            ->orderBy('start_date', 'desc')
+            ->orderBy('end_date', 'desc');
+
+        if ($booking) {
+            $query->where(function ($q) use ($booking) {
+                $q->where('booking_id', $booking->id)
+                  ->orWhereNull('booking_id');
+            });
+        } else {
+            $query->whereNull('booking_id');
+        }
+
+        $invoices = $query->get()->map(function ($invoice) {
+            return [
+                'id' => $invoice->id,
+                'start_date' => $invoice->start_date ? $invoice->start_date->format('Y-m-d') : null,
+                'end_date' => $invoice->end_date ? $invoice->end_date->format('Y-m-d') : null,
+                'electricity_amount' => (float) $invoice->electricity_amount,
+                'water_amount' => (float) $invoice->water_amount,
+                'other_fees' => (float) ($invoice->other_fees ?? 0),
+                'total' => (float) (
+                    $invoice->electricity_amount +
+                    $invoice->water_amount +
+                    ($invoice->other_fees ?? 0)
+                ),
+                'status' => $invoice->status,
+                'due_date' => $invoice->due_date ? $invoice->due_date->format('Y-m-d') : null,
+                'paid_at' => $invoice->paid_at ? $invoice->paid_at->format('Y-m-d H:i:s') : null,
+            ];
+        });
+
+        return response()->json(['invoices' => $invoices]);
     }
 }

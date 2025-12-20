@@ -94,6 +94,8 @@ Route::middleware(['auth', 'role:manager'])->group(function () {
         Route::post('/{house}/rooms', [\App\Http\Controllers\Admin\RoomController::class, 'store'])->name('rooms.store');
         Route::put('/{house}/rooms/{room}', [\App\Http\Controllers\Admin\RoomController::class, 'update'])->name('rooms.update');
         Route::delete('/{house}/rooms/{room}', [\App\Http\Controllers\Admin\RoomController::class, 'destroy'])->name('rooms.destroy');
+        Route::get('/{house}/rooms/{room}/invoices', [\App\Http\Controllers\Admin\RoomController::class, 'getInvoices'])->name('rooms.invoices.index');
+        Route::post('/{house}/rooms/{room}/invoices', [\App\Http\Controllers\Admin\RoomController::class, 'createInvoice'])->name('rooms.invoices.create');
     });
 
     // Settings
