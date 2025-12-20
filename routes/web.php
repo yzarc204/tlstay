@@ -24,6 +24,12 @@ Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 Route::get('/houses', [HouseController::class, 'index'])->name('houses.index');
 Route::get('/houses/{id}', [HouseController::class, 'show'])->name('houses.show');
 
+// Terms of Service
+Route::get('/terms', [\App\Http\Controllers\TermsController::class, 'index'])->name('terms.index');
+
+// Privacy Policy
+Route::get('/privacy', [\App\Http\Controllers\PrivacyController::class, 'index'])->name('privacy.index');
+
 // Booking Routes
 Route::get('/booking/{id}', [BookingController::class, 'show'])->name('booking.show');
 Route::post('/booking', [BookingController::class, 'store'])->name('booking.store');

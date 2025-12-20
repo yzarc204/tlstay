@@ -128,9 +128,9 @@
               />
               <span class="ml-2 text-sm text-gray-600">
                 Tôi đồng ý với
-                <a href="#" class="text-primary hover:text-secondary">Điều khoản dịch vụ</a>
+                <Link href="/terms" target="_blank" class="text-primary hover:text-secondary underline font-medium">Điều khoản dịch vụ</Link>
                 và
-                <a href="#" class="text-primary hover:text-secondary">Chính sách bảo mật</a>
+                <Link href="/privacy" target="_blank" class="text-primary hover:text-secondary underline font-medium">Chính sách bảo mật</Link>
               </span>
             </label>
           </div>

@@ -56,10 +56,10 @@
               <a href="#" class="hover:text-secondary transition-colors text-sm">Về chúng tôi</a>
             </li>
             <li>
-              <a href="#" class="hover:text-secondary transition-colors text-sm">Chính sách bảo mật</a>
+              <Link href="/privacy" class="hover:text-secondary transition-colors text-sm">Chính sách bảo mật</Link>
             </li>
             <li>
-              <a href="#" class="hover:text-secondary transition-colors text-sm">Điều khoản & Điều kiện</a>
+              <Link href="/terms" class="hover:text-secondary transition-colors text-sm">Điều khoản & Điều kiện</Link>
             </li>
             <li>
               <a href="#" class="hover:text-secondary transition-colors text-sm">Liên hệ</a>
@@ -126,8 +126,8 @@
             &copy; {{ new Date().getFullYear() }} {{ siteName }}. All rights reserved.
           </p>
           <div class="flex flex-wrap justify-center md:justify-end gap-6 text-sm">
-            <a href="#" class="text-primary-200 hover:text-secondary transition-colors">Bảo mật</a>
-            <a href="#" class="text-primary-200 hover:text-secondary transition-colors">Điều khoản</a>
+            <Link href="/privacy" class="text-primary-200 hover:text-secondary transition-colors">Bảo mật</Link>
+            <Link href="/terms" class="text-primary-200 hover:text-secondary transition-colors">Điều khoản</Link>
             <a href="#" class="text-primary-200 hover:text-secondary transition-colors">Cookies</a>
             <a href="#" class="text-primary-200 hover:text-secondary transition-colors">Sơ đồ trang</a>
           </div>
@@ -139,7 +139,7 @@
 
 <script setup>
 import { computed } from 'vue'
-import { usePage } from '@inertiajs/vue3'
+import { Link, usePage } from '@inertiajs/vue3'
 import { ArrowRightIcon, PhoneIcon, EnvelopeIcon } from '@heroicons/vue/24/outline'
 import SocialIcon from '@/components/SocialIcon.vue'
 
