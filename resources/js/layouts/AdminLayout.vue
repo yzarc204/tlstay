@@ -18,14 +18,9 @@
         :icon="MapPinIcon"
       />
       <SidebarItem
-        href="/admin/contracts"
-        label="Quản lý Hợp đồng"
-        :icon="DocumentTextIcon"
-      />
-      <SidebarItem
-        href="/admin/promotions"
-        label="Quản lý Khuyến mãi"
-        :icon="TicketIcon"
+        href="/admin/bookings"
+        label="Quản lý Đặt phòng"
+        :icon="CalendarIcon"
       />
       <SidebarItem
         href="/admin/banners"
@@ -36,11 +31,6 @@
         href="/admin/users"
         label="Quản lý Tài khoản"
         :icon="UsersIcon"
-      />
-      <SidebarItem
-        href="/admin/bookings"
-        label="Quản lý Đặt phòng"
-        :icon="CalendarIcon"
       />
       <SidebarItem
         href="/admin/company-information"
@@ -91,8 +81,6 @@ import {
   HomeIcon,
   BuildingOffice2Icon,
   BuildingOfficeIcon,
-  DocumentTextIcon,
-  TicketIcon,
   PhotoIcon,
   UsersIcon,
   MapPinIcon,
