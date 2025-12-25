@@ -9,6 +9,7 @@ use App\Models\Booking;
 use App\Models\House;
 use App\Models\Invoice;
 use App\Models\Room;
+use App\Services\FileUploadService;
 use Carbon\Carbon;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -19,6 +20,13 @@ use Inertia\Response;
 
 class RoomController extends Controller
 {
+    protected FileUploadService $fileUploadService;
+
+    public function __construct(FileUploadService $fileUploadService)
+    {
+        $this->fileUploadService = $fileUploadService;
+    }
+
     /**
      * Store a newly created room.
      */
@@ -47,7 +55,7 @@ class RoomController extends Controller
         if (!isset($validated['price_per_day']) || $validated['price_per_day'] === '' || $validated['price_per_day'] === null) {
             $validated['price_per_day'] = $house->price_per_day;
         }
-        
+
         // Always inherit amenities from house when creating a new room
         // If amenities array is empty or not provided, use house amenities
         if (!isset($validated['amenities']) || !is_array($validated['amenities']) || empty($validated['amenities'])) {
@@ -58,18 +66,14 @@ class RoomController extends Controller
         // Images can be either uploaded files or URLs from house images
         if ($request->hasFile('images')) {
             // Handle file uploads (legacy support)
-            $imagePaths = [];
-            foreach ($request->file('images') as $image) {
-                $path = $image->store('rooms', 'public');
-                $imagePaths[] = '/storage/' . $path;
-            }
+            $imagePaths = $this->fileUploadService->uploadFiles($request->file('images'), 'rooms');
             $validated['images'] = $imagePaths;
         } elseif ($request->has('images') && is_array($request->input('images'))) {
             // Handle image URLs selected from house images
             $imageUrls = array_filter($request->input('images'), function ($img) {
                 return !empty($img) && is_string($img);
             });
-            
+
             // Validate that all images belong to the house
             $houseImages = $house->images ?? [];
             if (is_array($houseImages)) {
@@ -127,18 +131,14 @@ class RoomController extends Controller
         // Images can be either uploaded files or URLs from house images
         if ($request->hasFile('images')) {
             // Handle file uploads (legacy support)
-            $imagePaths = [];
-            foreach ($request->file('images') as $image) {
-                $path = $image->store('rooms', 'public');
-                $imagePaths[] = '/storage/' . $path;
-            }
+            $imagePaths = $this->fileUploadService->uploadFiles($request->file('images'), 'rooms');
             $validated['images'] = $imagePaths;
         } elseif ($request->has('images') && is_array($request->input('images'))) {
             // Handle image URLs selected from house images
             $imageUrls = array_filter($request->input('images'), function ($img) {
                 return !empty($img) && is_string($img);
             });
-            
+
             // Validate that all images belong to the house
             $houseImages = $house->images ?? [];
             if (is_array($houseImages)) {
@@ -158,28 +158,30 @@ class RoomController extends Controller
         $room->update($validated);
 
         // Check if tenant information changed and create booking if needed
-        $tenantChanged = ($oldTenantId != $validated['tenant_id']) || 
-                        ($oldRentalStartDate != $validated['rental_start_date']) || 
-                        ($oldRentalEndDate != $validated['rental_end_date']);
+        $tenantChanged = ($oldTenantId != $validated['tenant_id']) ||
+            ($oldRentalStartDate != $validated['rental_start_date']) ||
+            ($oldRentalEndDate != $validated['rental_end_date']);
 
-        if ($tenantChanged && 
-            $validated['status'] === 'active' && 
-            isset($validated['tenant_id']) && 
+        if (
+            $tenantChanged &&
+            $validated['status'] === 'active' &&
+            isset($validated['tenant_id']) &&
             $validated['tenant_id'] &&
-            isset($validated['rental_start_date']) && 
+            isset($validated['rental_start_date']) &&
             $validated['rental_start_date'] &&
-            isset($validated['rental_end_date']) && 
-            $validated['rental_end_date']) {
-            
+            isset($validated['rental_end_date']) &&
+            $validated['rental_end_date']
+        ) {
+
             // Create booking with 0 price and paid status
             DB::transaction(function () use ($room, $house, $validated) {
                 $tenant = \App\Models\User::find($validated['tenant_id']);
-                
+
                 if ($tenant) {
                     // Create booking
                     // Generate unique booking code
                     $bookingCode = CodeGenerator::generateBookingCode();
-                    
+
                     $booking = Booking::create([
                         'user_id' => $tenant->id,
                         'house_id' => $house->id,
@@ -259,7 +261,7 @@ class RoomController extends Controller
             ->where(function ($query) use ($startDate, $endDate) {
                 $query->where(function ($q) use ($startDate, $endDate) {
                     $q->where('start_date', '<=', $endDate)
-                      ->where('end_date', '>=', $startDate);
+                        ->where('end_date', '>=', $startDate);
                 });
             })
             ->first();
@@ -269,9 +271,9 @@ class RoomController extends Controller
             ->where(function ($q) use ($startDate, $endDate) {
                 $q->where(function ($overlapQuery) use ($startDate, $endDate) {
                     $overlapQuery->whereNotNull('start_date')
-                       ->whereNotNull('end_date')
-                       ->where('start_date', '<=', $endDate)
-                       ->where('end_date', '>=', $startDate);
+                        ->whereNotNull('end_date')
+                        ->where('start_date', '<=', $endDate)
+                        ->where('end_date', '>=', $startDate);
                 });
             });
 
@@ -290,9 +292,9 @@ class RoomController extends Controller
         // Calculate total amount (electricity + water + other fees)
         // Note: amount field in Invoice model represents room rent, but for utility invoices it's 0
         // The total utility cost is electricity_amount + water_amount + other_fees
-        $totalAmount = (float) $request->electricity_amount 
-                     + (float) $request->water_amount 
-                     + (float) ($request->other_fees ?? 0);
+        $totalAmount = (float) $request->electricity_amount
+            + (float) $request->water_amount
+            + (float) ($request->other_fees ?? 0);
 
         // Generate unique invoice code
         $invoiceCode = CodeGenerator::generateInvoiceCode();
@@ -342,7 +344,7 @@ class RoomController extends Controller
         if ($booking) {
             $query->where(function ($q) use ($booking) {
                 $q->where('booking_id', $booking->id)
-                  ->orWhereNull('booking_id');
+                    ->orWhereNull('booking_id');
             });
         } else {
             $query->whereNull('booking_id');

@@ -21,10 +21,14 @@ class RentalHistoryController extends Controller
 
         // Fetch user bookings with relationships
         $bookings = Booking::where('user_id', $user->id)
-            ->with(['house', 'room'])
+            ->with(['house', 'room', 'review'])
             ->orderBy('created_at', 'desc')
             ->get()
             ->map(function ($booking) {
+                $canReview = $booking->payment_status === 'paid' 
+                    && $booking->status !== 'cancelled' 
+                    && !$booking->review;
+                
                 return [
                     'id' => $booking->id,
                     'booking_code' => $booking->booking_code,
@@ -42,6 +46,14 @@ class RentalHistoryController extends Controller
                     'payment_method' => $booking->payment_method,
                     'paid_at' => $booking->paid_at?->format('Y-m-d H:i:s'),
                     'created_at' => $booking->created_at->format('Y-m-d H:i:s'),
+                    'has_review' => $booking->review !== null,
+                    'can_review' => $canReview,
+                    'review' => $booking->review ? [
+                        'id' => $booking->review->id,
+                        'rating' => $booking->review->rating,
+                        'comment' => $booking->review->comment,
+                        'created_at' => $booking->review->created_at->format('Y-m-d H:i:s'),
+                    ] : null,
                 ];
             });
 

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Services\FileUploadService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
@@ -11,6 +12,13 @@ use Inertia\Inertia;
 
 class ProfileController extends Controller
 {
+    protected FileUploadService $fileUploadService;
+
+    public function __construct(FileUploadService $fileUploadService)
+    {
+        $this->fileUploadService = $fileUploadService;
+    }
+
     /**
      * Display profile page
      */
@@ -159,47 +167,45 @@ class ProfileController extends Controller
                     'file_mime' => $request->file('id_card_image')->getMimeType(),
                 ]);
 
-                // Xóa ảnh cũ nếu có
-                if ($user->id_card_image) {
-                    // Xử lý cả trường hợp đường dẫn có hoặc không có prefix 'id_cards/'
-                    $oldPath = $user->id_card_image;
-                    if (strpos($oldPath, 'id_cards/') === 0) {
-                        // Đường dẫn đã đúng format
-                    } elseif (strpos($oldPath, '/storage/') === 0) {
-                        // Đường dẫn có prefix /storage/, cần loại bỏ
-                        $oldPath = str_replace('/storage/', '', $oldPath);
-                    }
-                    
-                    if (Storage::disk('public')->exists($oldPath)) {
-                        Storage::disk('public')->delete($oldPath);
-                        Log::info('Old ID card image deleted', ['path' => $oldPath]);
-                    } else {
-                        Log::warning('Old ID card image not found', ['path' => $oldPath]);
-                    }
-                }
-
                 // Đảm bảo thư mục id_cards tồn tại
-                $idCardsPath = storage_path('app/public/id_cards');
-                if (!file_exists($idCardsPath)) {
-                    mkdir($idCardsPath, 0755, true);
-                    Log::info('Created id_cards directory', ['path' => $idCardsPath]);
+                $this->fileUploadService->ensureDirectoryExists('id_cards');
+
+                // Xử lý đường dẫn cũ (có thể là relative path hoặc full path với /storage/)
+                $oldImagePath = $user->id_card_image;
+                if ($oldImagePath && strpos($oldImagePath, '/storage/') === 0) {
+                    // Nếu là full path với /storage/, giữ nguyên để deleteFile xử lý
+                } elseif ($oldImagePath && strpos($oldImagePath, 'id_cards/') === 0) {
+                    // Nếu là relative path, thêm /storage/ prefix
+                    $oldImagePath = '/storage/' . $oldImagePath;
                 }
 
-                // Lưu ảnh mới
-                $image = $request->file('id_card_image');
-                $fileName = $user->id . '_' . time() . '.' . $image->getClientOriginalExtension();
-                
-                // Lưu file vào storage (tương tự như các controller khác)
-                $path = $image->store('id_cards', 'public');
-                Log::info('ID card image stored', [
-                    'file_name' => $fileName,
-                    'stored_path' => $path,
-                    'full_path' => storage_path('app/public/' . $path),
-                    'file_exists' => file_exists(storage_path('app/public/' . $path)),
-                ]);
-                
-                // Lưu đường dẫn tương đối để có thể lấy URL sau
-                $updateData['id_card_image'] = $path;
+                // Upload ảnh mới với tên file tùy chỉnh
+                $fileName = $user->id . '_' . time();
+                $newImagePath = $this->fileUploadService->uploadFileWithName(
+                    $request->file('id_card_image'),
+                    'id_cards',
+                    $fileName
+                );
+
+                if ($newImagePath) {
+                    // Xóa ảnh cũ nếu có
+                    if ($oldImagePath) {
+                        $this->fileUploadService->deleteFile($oldImagePath);
+                        Log::info('Old ID card image deleted', ['path' => $oldImagePath]);
+                    }
+
+                    // Lưu đường dẫn tương đối (loại bỏ /storage/ prefix)
+                    $relativePath = str_replace('/storage/', '', $newImagePath);
+                    $updateData['id_card_image'] = $relativePath;
+
+                    Log::info('ID card image stored', [
+                        'file_name' => $fileName,
+                        'stored_path' => $relativePath,
+                        'full_path' => $newImagePath,
+                    ]);
+                } else {
+                    throw new \Exception('Failed to upload image');
+                }
             } catch (\Exception $e) {
                 Log::error('Error uploading ID card image', [
                     'error' => $e->getMessage(),

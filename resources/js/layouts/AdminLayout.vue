@@ -23,6 +23,11 @@
         :icon="CalendarIcon"
       />
       <SidebarItem
+        href="/admin/reviews"
+        label="Quản lý Đánh giá"
+        :icon="ChatBubbleLeftRightIcon"
+      />
+      <SidebarItem
         href="/admin/banners"
         label="Quản lý Slider"
         :icon="PhotoIcon"
@@ -104,6 +109,7 @@ import {
   CalendarIcon,
   Cog6ToothIcon,
   SparklesIcon,
+  ChatBubbleLeftRightIcon,
 } from '@heroicons/vue/24/outline'
 
 defineProps({

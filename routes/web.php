@@ -68,6 +68,9 @@ Route::middleware('auth')->group(function () {
     // Invoices
     Route::get('/invoices', [InvoiceController::class, 'index'])->name('invoices.index');
     Route::get('/invoices/{id}', [InvoiceController::class, 'show'])->name('invoices.show');
+    
+    // Reviews
+    Route::post('/reviews', [\App\Http\Controllers\ReviewController::class, 'store'])->name('reviews.store');
 });
 
 // Profile Routes
@@ -161,5 +164,14 @@ Route::middleware(['auth', 'role:manager'])->group(function () {
         Route::post('/', [\App\Http\Controllers\Admin\AddressController::class, 'store'])->name('store');
         Route::put('/{address}', [\App\Http\Controllers\Admin\AddressController::class, 'update'])->name('update');
         Route::delete('/{address}', [\App\Http\Controllers\Admin\AddressController::class, 'destroy'])->name('destroy');
+    });
+
+    // Review Management
+    Route::prefix('admin/reviews')->name('admin.reviews.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Admin\ReviewController::class, 'index'])->name('index');
+        Route::post('/{review}/respond', [\App\Http\Controllers\Admin\ReviewController::class, 'respond'])->name('respond');
+        Route::match(['put', 'post'], '/{review}/response', [\App\Http\Controllers\Admin\ReviewController::class, 'updateResponse'])->name('update-response');
+        Route::delete('/{review}/response', [\App\Http\Controllers\Admin\ReviewController::class, 'deleteResponse'])->name('delete-response');
+        Route::delete('/{review}', [\App\Http\Controllers\Admin\ReviewController::class, 'destroy'])->name('destroy');
     });
 });

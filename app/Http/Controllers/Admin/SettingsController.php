@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Setting;
 use App\Models\SocialLink;
+use App\Services\FileUploadService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -12,6 +13,13 @@ use Inertia\Inertia;
 
 class SettingsController extends Controller
 {
+    protected FileUploadService $fileUploadService;
+
+    public function __construct(FileUploadService $fileUploadService)
+    {
+        $this->fileUploadService = $fileUploadService;
+    }
+
     /**
      * Display settings page
      */
@@ -72,17 +80,12 @@ class SettingsController extends Controller
             if ($request->hasFile('logo')) {
                 $logoSetting = Setting::where('key', 'site_logo')->first();
                 
-                // Delete old logo if exists
-                if ($logoSetting && $logoSetting->value) {
-                    $oldPath = str_replace('/storage/', '', $logoSetting->value);
-                    if (Storage::disk('public')->exists($oldPath)) {
-                        Storage::disk('public')->delete($oldPath);
-                    }
-                }
-                
-                // Upload new logo
-                $path = $request->file('logo')->store('logos', 'public');
-                $logoUrl = '/storage/' . $path;
+                // Upload new logo and replace old one
+                $logoUrl = $this->fileUploadService->replaceFile(
+                    $request->file('logo'),
+                    $logoSetting?->value,
+                    'logos'
+                );
                 
                 Setting::where('key', 'site_logo')
                     ->update(['value' => $logoUrl]);
@@ -93,10 +96,7 @@ class SettingsController extends Controller
                 $logoSetting = Setting::where('key', 'site_logo')->first();
                 
                 if ($logoSetting && $logoSetting->value) {
-                    $oldPath = str_replace('/storage/', '', $logoSetting->value);
-                    if (Storage::disk('public')->exists($oldPath)) {
-                        Storage::disk('public')->delete($oldPath);
-                    }
+                    $this->fileUploadService->deleteFile($logoSetting->value);
                 }
                 
                 Setting::where('key', 'site_logo')

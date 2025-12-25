@@ -4,8 +4,8 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\StoreHouseRequest;
-use App\Http\Traits\HandlesFileUploads;
 use App\Models\House;
+use App\Services\FileUploadService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -13,7 +13,12 @@ use Inertia\Response;
 
 class HouseController extends Controller
 {
-    use HandlesFileUploads;
+    protected FileUploadService $fileUploadService;
+
+    public function __construct(FileUploadService $fileUploadService)
+    {
+        $this->fileUploadService = $fileUploadService;
+    }
     /**
      * Display a listing of houses.
      */
@@ -129,7 +134,7 @@ class HouseController extends Controller
         // Process images if provided
         $imagePaths = [];
         if ($request->hasFile('images')) {
-            $imagePaths = $this->uploadFiles($request->file('images'), 'houses');
+            $imagePaths = $this->fileUploadService->uploadFiles($request->file('images'), 'houses');
             $validated['images'] = $imagePaths;
 
             // Set first image as main image
@@ -357,7 +362,7 @@ class HouseController extends Controller
 
         // Process new images if provided
         if ($request->hasFile('images')) {
-            $newImagePaths = $this->uploadFiles($request->file('images'), 'houses');
+            $newImagePaths = $this->fileUploadService->uploadFiles($request->file('images'), 'houses');
             $allImages = array_merge($allImages, $newImagePaths);
             $hasImageChanges = true;
         }

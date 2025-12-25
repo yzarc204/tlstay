@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\House;
 use App\Models\Address;
+use App\Services\SystemTimeService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -105,7 +106,7 @@ class HouseController extends Controller
 
     public function show($id)
     {
-        $house = House::with(['owner', 'rooms.bookings'])
+        $house = House::with(['owner', 'rooms.bookings', 'reviews.user'])
             ->withCount([
                 'rooms as total_rooms_count',
             ])
@@ -146,6 +147,69 @@ class HouseController extends Controller
             $defaultImage = $house->image;
         }
 
+        // Get reviews with user info
+        $reviews = $house->reviews()
+            ->with('user')
+            ->orderBy('created_at', 'desc')
+            ->get()
+            ->map(function ($review) {
+                return [
+                    'id' => $review->id,
+                    'user' => [
+                        'id' => $review->user->id,
+                        'name' => $review->user->name,
+                        'avatar' => $review->user->avatar,
+                    ],
+                    'rating' => $review->rating,
+                    'comment' => $review->comment,
+                    'images' => $review->images ?? [],
+                    'manager_response' => $review->manager_response,
+                    'manager_response_at' => $review->manager_response_at?->format('Y-m-d H:i:s'),
+                    'created_at' => $review->created_at->format('Y-m-d H:i:s'),
+                ];
+            });
+
+        // Check if current user can review this house
+        $canReview = false;
+        $reviewableBooking = null;
+        if (auth()->check()) {
+            $user = auth()->user();
+            
+            // Đếm số lần đã thuê (bookings đã thanh toán và không bị hủy)
+            $totalBookings = \App\Models\Booking::where('user_id', $user->id)
+                ->where('house_id', $house->id)
+                ->where('payment_status', 'paid')
+                ->where('status', '!=', 'cancelled')
+                ->count();
+            
+            // Đếm số lần đã đánh giá
+            $totalReviews = \App\Models\Review::where('user_id', $user->id)
+                ->where('house_id', $house->id)
+                ->count();
+            
+            // Kiểm tra điều kiện:
+            // 1. Phải có ít nhất 1 booking đã thanh toán
+            // 2. Số lần đánh giá phải nhỏ hơn số lần thuê
+            // 3. Phải có booking chưa được đánh giá
+            // 4. Booking phải đã kết thúc và trong vòng 14 ngày sau khi kết thúc
+            if ($totalBookings > 0 && $totalReviews < $totalBookings) {
+                $today = SystemTimeService::today();
+                
+                // Find a booking that's paid, not cancelled, doesn't have a review,
+                // has ended, and is within 14 days after end date
+                $reviewableBooking = \App\Models\Booking::where('user_id', $user->id)
+                    ->where('house_id', $house->id)
+                    ->where('payment_status', 'paid')
+                    ->where('status', '!=', 'cancelled')
+                    ->whereDoesntHave('review')
+                    ->where('end_date', '<=', $today) // Booking đã kết thúc
+                    ->whereRaw('DATE_ADD(end_date, INTERVAL 14 DAY) >= ?', [$today]) // Trong vòng 14 ngày sau khi kết thúc
+                    ->first();
+                
+                $canReview = $reviewableBooking !== null;
+            }
+        }
+
         $houseData = [
             'id' => $house->id,
             'name' => $house->name,
@@ -170,6 +234,9 @@ class HouseController extends Controller
         return Inertia::render('HouseDetail', [
             'house' => $houseData,
             'rooms' => $rooms,
+            'reviews' => $reviews,
+            'canReview' => $canReview,
+            'reviewableBookingId' => $reviewableBooking?->id,
         ]);
     }
 }

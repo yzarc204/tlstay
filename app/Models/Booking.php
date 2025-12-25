@@ -75,4 +75,12 @@ class Booking extends Model
         return $this->hasMany(Invoice::class);
     }
 
+    /**
+     * Get the review for the booking.
+     */
+    public function review(): \Illuminate\Database\Eloquent\Relations\HasOne
+    {
+        return $this->hasOne(Review::class);
+    }
+
 }

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Banner;
+use App\Services\FileUploadService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
@@ -11,6 +12,13 @@ use Inertia\Response;
 
 class BannerController extends Controller
 {
+    protected FileUploadService $fileUploadService;
+
+    public function __construct(FileUploadService $fileUploadService)
+    {
+        $this->fileUploadService = $fileUploadService;
+    }
+
     /**
      * Display a listing of banners.
      */
@@ -77,8 +85,7 @@ class BannerController extends Controller
 
         // Upload image
         if ($request->hasFile('image')) {
-            $path = $request->file('image')->store('banners', 'public');
-            $validated['image'] = '/storage/' . $path;
+            $validated['image'] = $this->fileUploadService->uploadFile($request->file('image'), 'banners');
         }
 
         $validated['order'] = $validated['order'] ?? 0;
@@ -128,13 +135,11 @@ class BannerController extends Controller
 
         // Upload new image if provided
         if ($request->hasFile('image')) {
-            // Delete old image
-            if ($banner->image && Storage::disk('public')->exists(str_replace('/storage/', '', $banner->image))) {
-                Storage::disk('public')->delete(str_replace('/storage/', '', $banner->image));
-            }
-
-            $path = $request->file('image')->store('banners', 'public');
-            $validated['image'] = '/storage/' . $path;
+            $validated['image'] = $this->fileUploadService->replaceFile(
+                $request->file('image'),
+                $banner->image,
+                'banners'
+            );
         } else {
             // Keep existing image - don't update the image field
             unset($validated['image']);
@@ -153,9 +158,7 @@ class BannerController extends Controller
     public function destroy(Banner $banner)
     {
         // Delete image file
-        if ($banner->image && Storage::disk('public')->exists(str_replace('/storage/', '', $banner->image))) {
-            Storage::disk('public')->delete(str_replace('/storage/', '', $banner->image));
-        }
+        $this->fileUploadService->deleteFile($banner->image);
 
         $banner->delete();
 

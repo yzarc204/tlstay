@@ -177,6 +177,31 @@
                   </div>
                 </div>
               </div>
+
+              <!-- Reviews Section -->
+              <div class="mt-8">
+                <h2 class="text-2xl font-bold text-secondary mb-4">Đánh giá ({{ reviews?.length || 0 }})</h2>
+                
+                <!-- Review Form (only show if user can review) -->
+                <ReviewForm 
+                  v-if="canReview && isAuthenticated && reviewableBookingId"
+                  :booking-id="reviewableBookingId"
+                  :house-id="house.id"
+                  @review-created="handleReviewCreated"
+                />
+
+                <!-- Reviews List -->
+                <div v-if="reviews && reviews.length > 0" class="space-y-6 mt-6">
+                  <ReviewItem 
+                    v-for="review in reviews" 
+                    :key="review.id"
+                    :review="review"
+                  />
+                </div>
+                <div v-else class="text-center py-8 text-gray-500">
+                  <p>Chưa có đánh giá nào</p>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -266,6 +291,8 @@ import { Head, router, Link, usePage } from '@inertiajs/vue3'
 import AppLayout from '@/layouts/AppLayout.vue'
 import { useAuth } from '@/composables/useAuth'
 import { getAmenityIcon, getAmenityName } from '@/utils/amenityIcons'
+import ReviewForm from '@/components/reviews/ReviewForm.vue'
+import ReviewItem from '@/components/reviews/ReviewItem.vue'
 
 const page = usePage()
 
@@ -303,6 +330,18 @@ const props = defineProps({
   rooms: {
     type: Array,
     default: () => [],
+  },
+  reviews: {
+    type: Array,
+    default: () => [],
+  },
+  canReview: {
+    type: Boolean,
+    default: false,
+  },
+  reviewableBookingId: {
+    type: Number,
+    default: null,
   },
 })
 
@@ -449,5 +488,14 @@ const goToBooking = () => {
   if (props.house?.id) {
     router.visit(`/booking/${props.house.id}`)
   }
+}
+
+const handleReviewCreated = () => {
+  // Reload page to show new review and update canReview status
+  // This will hide the form if user can no longer review
+  router.reload({ 
+    only: ['reviews', 'canReview', 'reviewableBookingId'],
+    preserveScroll: true 
+  })
 }
 </script>

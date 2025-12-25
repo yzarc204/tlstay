@@ -88,7 +88,13 @@ class User extends Authenticatable
         return $this->hasMany(Invoice::class);
     }
 
-
+    /**
+     * Get the reviews written by the user.
+     */
+    public function reviews(): HasMany
+    {
+        return $this->hasMany(Review::class);
+    }
 
     /**
      * Check if user is a manager.

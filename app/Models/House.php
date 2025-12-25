@@ -69,6 +69,14 @@ class House extends Model
     }
 
     /**
+     * Get the reviews for the house.
+     */
+    public function reviews(): HasMany
+    {
+        return $this->hasMany(Review::class);
+    }
+
+    /**
      * Get available rooms count.
      */
     public function getAvailableRoomsAttribute(): int
