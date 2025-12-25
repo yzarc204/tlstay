@@ -57,13 +57,14 @@ Route::middleware('auth')->group(function () {
 // Rental History (requires auth)
 Route::middleware('auth')->group(function () {
     Route::get('/history', [RentalHistoryController::class, 'index'])->name('history.index');
+    Route::get('/my-rentals', [RentalHistoryController::class, 'index'])->name('my-rentals');
+    Route::get('/my-rentals/{booking}', [RentalHistoryController::class, 'show'])->name('my-rentals.show');
     
     // Contract download
     Route::get('/contract/{booking}', [\App\Http\Controllers\ContractController::class, 'download'])->name('contract.download');
     Route::get('/contract/{booking}/preview', [\App\Http\Controllers\ContractController::class, 'preview'])->name('contract.preview');
     Route::get('/contract/{booking}/sign', [\App\Http\Controllers\ContractController::class, 'showSign'])->name('contract.sign.show');
     Route::post('/contract/{booking}/sign', [\App\Http\Controllers\ContractController::class, 'sign'])->name('contract.sign');
-    Route::get('/my-rentals', [RentalHistoryController::class, 'index'])->name('my-rentals');
     
     // Invoices
     Route::get('/invoices', [InvoiceController::class, 'index'])->name('invoices.index');

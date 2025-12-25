@@ -85,7 +85,7 @@
                 </div>
                 <div class="flex space-x-2">
                   <Link
-                    :href="`/booking/${booking.id}`"
+                    :href="`/my-rentals/${booking.id}`"
                     class="px-4 py-2 bg-secondary text-white rounded-lg hover:bg-secondary-700 transition-all"
                   >
                     Chi tiết
