@@ -41,8 +41,53 @@ class AdminController extends Controller
                 ->sum('total_price'),
         ];
 
+        // Dữ liệu cho biểu đồ doanh thu 6 tháng gần nhất
+        $revenueData = [];
+        $revenueLabels = [];
+        for ($i = 5; $i >= 0; $i--) {
+            $date = Carbon::now()->subMonths($i);
+            $monthRevenue = Booking::whereMonth('created_at', $date->month)
+                ->whereYear('created_at', $date->year)
+                ->where('payment_status', 'paid')
+                ->sum('total_price');
+            $revenueData[] = $monthRevenue;
+            $revenueLabels[] = $date->format('M Y');
+        }
+
+        // Dữ liệu cho biểu đồ đặt phòng 6 tháng gần nhất
+        $bookingsData = [];
+        $bookingsLabels = [];
+        for ($i = 5; $i >= 0; $i--) {
+            $date = Carbon::now()->subMonths($i);
+            $monthBookings = Booking::whereMonth('created_at', $date->month)
+                ->whereYear('created_at', $date->year)
+                ->count();
+            $bookingsData[] = $monthBookings;
+            $bookingsLabels[] = $date->format('M Y');
+        }
+
+        // Dữ liệu cho biểu đồ trạng thái phòng
+        $roomStatusData = [
+            'available' => Room::where('status', 'available')->count(),
+            'active' => Room::where('status', 'active')->count(),
+        ];
+
         return Inertia::render('Admin/Dashboard', [
             'stats' => $stats,
+            'chartData' => [
+                'revenue' => [
+                    'labels' => $revenueLabels,
+                    'data' => $revenueData,
+                ],
+                'bookings' => [
+                    'labels' => $bookingsLabels,
+                    'data' => $bookingsData,
+                ],
+                'roomStatus' => [
+                    'available' => $roomStatusData['available'],
+                    'occupied' => $roomStatusData['active'],
+                ],
+            ],
         ]);
     }
 }
