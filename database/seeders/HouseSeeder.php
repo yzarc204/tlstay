@@ -3,11 +3,9 @@
 namespace Database\Seeders;
 
 use App\Models\Address;
-use App\Models\Booking;
 use App\Models\House;
 use App\Models\Room;
 use App\Models\User;
-use App\Helpers\CodeGenerator;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 
@@ -40,8 +38,10 @@ class HouseSeeder extends Seeder
             ]);
         }
 
-        // Lấy danh sách customer để gán người thuê
-        $customers = User::where('role', 'customer')->get();
+        // Lấy danh sách customer để gán người thuê, loại trừ customer@tlstay.com và manager@tlstay.com
+        $customers = User::where('role', 'customer')
+            ->whereNotIn('email', ['customer@tlstay.com', 'manager@tlstay.com'])
+            ->get();
         
         if ($customers->isEmpty()) {
             $this->command->warn('Không có customer nào trong database. Vui lòng chạy UserSeeder trước.');
@@ -55,7 +55,9 @@ class HouseSeeder extends Seeder
                     'phone' => '0' . rand(100000000, 999999999),
                 ]);
             }
-            $customers = User::where('role', 'customer')->get();
+            $customers = User::where('role', 'customer')
+                ->whereNotIn('email', ['customer@tlstay.com', 'manager@tlstay.com'])
+                ->get();
         }
 
         // Danh sách tiện nghi
@@ -186,48 +188,13 @@ class HouseSeeder extends Seeder
                         $rentalEndDate = now()->addDays($rentalDays)->format('Y-m-d');
                         
                         // Cập nhật thông tin người thuê vào phòng
+                        // Booking sẽ được tạo trong BookingSeeder
                         $room->update([
                             'tenant_id' => $tenant->id,
                             'tenant_name' => $tenant->name,
                             'rental_start_date' => $rentalStartDate,
                             'rental_end_date' => $rentalEndDate,
                             'status' => 'active',
-                        ]);
-
-                        // Tính tổng giá tiền
-                        $days = (strtotime($rentalEndDate) - strtotime($rentalStartDate)) / (60 * 60 * 24);
-                        $totalPrice = round($roomPrice * $days, 2);
-                        
-                        // Xác định booking_status dựa trên ngày
-                        $bookingStatus = 'active';
-                        if (strtotime($rentalEndDate) < strtotime('today')) {
-                            $bookingStatus = 'past';
-                        } elseif (strtotime($rentalStartDate) > strtotime('today')) {
-                            $bookingStatus = 'upcoming';
-                        }
-
-                        // 70% khả năng có hợp đồng đã ký
-                        $hasContract = rand(0, 10) < 7;
-                        
-                        // Tạo booking
-                        $booking = Booking::create([
-                            'user_id' => $tenant->id,
-                            'house_id' => $house->id,
-                            'room_id' => $room->id,
-                            'start_date' => $rentalStartDate,
-                            'end_date' => $rentalEndDate,
-                            'status' => $bookingStatus === 'past' ? 'completed' : 'active',
-                            'booking_status' => $bookingStatus,
-                            'total_price' => $totalPrice,
-                            'discount_amount' => 0,
-                            'tenant_name' => $tenant->name,
-                            'payment_status' => 'paid', // Đã thanh toán vì đang ở
-                            'payment_method' => 'vnpay',
-                            'paid_at' => now()->subDays($daysAgo),
-                            'contract_signed' => $hasContract,
-                            'signed_at' => $hasContract ? now()->subDays($daysAgo) : null,
-                            'user_signature' => $hasContract ? 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==' : null, // Base64 placeholder
-                            'booking_code' => CodeGenerator::generateBookingCode(),
                         ]);
                     }
                 }
