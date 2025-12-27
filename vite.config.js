@@ -27,7 +27,7 @@ export default defineConfig({
         },
     },
     optimizeDeps: {
-        include: ['vue-advanced-cropper', '@zxing/library'],
+        include: ['vue-advanced-cropper', '@zxing/library', 'pdfjs-dist'],
         force: true, // Force re-optimization
     },
     server: {

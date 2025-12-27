@@ -20,6 +20,7 @@ class DatabaseSeeder extends Seeder
             CompanyInformationSeeder::class,
             AddressSeeder::class,
             UserSeeder::class,
+            HouseSeeder::class
         ]);
     }
 }

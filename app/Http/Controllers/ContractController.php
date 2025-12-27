@@ -100,7 +100,9 @@ class ContractController extends Controller
         $userSignature = $booking->user_signature ?? null;
         $signedAt = $booking->signed_at ? $booking->signed_at->format('d/m/Y H:i') : null;
 
-        // Generate PDF with Unicode support
+        $filename = "hop-dong-thue-tro-{$booking->id}.pdf";
+
+        // Generate PDF directly without caching
         $pdf = Pdf::setOption([
             'defaultFont' => 'DejaVu Serif',
             'isRemoteEnabled' => true, // Enable to load base64 images
@@ -145,20 +147,26 @@ class ContractController extends Controller
             'signedAt'
         ));
 
-        $filename = "hop-dong-thue-tro-{$booking->id}.pdf";
-
-        // Check if this is an embed request (for iframe)
+        // Stream PDF directly without caching
+        // Check if this is an embed request (for PDF viewer)
         if ($request->query('embed') === 'true') {
             return $pdf->stream($filename, [
                 'Content-Disposition' => 'inline; filename="' . $filename . '"',
+                'Cache-Control' => 'no-cache, no-store, must-revalidate',
+                'Pragma' => 'no-cache',
+                'Expires' => '0',
             ]);
         }
 
-        return $pdf->stream($filename);
+        return $pdf->stream($filename, [
+            'Cache-Control' => 'no-cache, no-store, must-revalidate',
+            'Pragma' => 'no-cache',
+            'Expires' => '0',
+        ]);
     }
 
     /**
-     * Get contract PDF URL for embedding
+     * Get contract PDF URL for embedding (direct generation, no cache)
      */
     public function preview(Booking $booking)
     {
@@ -172,7 +180,7 @@ class ContractController extends Controller
             abort(404, 'Hợp đồng chỉ có thể được tạo sau khi thanh toán thành công.');
         }
 
-        // Redirect to download with embed parameter
+        // Redirect to download which will generate PDF directly
         return redirect()->route('contract.download', ['booking' => $booking->id, 'embed' => 'true']);
     }
 

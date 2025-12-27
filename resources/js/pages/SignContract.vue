@@ -52,58 +52,14 @@
           </div>
           
           <!-- PDF Viewer -->
-          <div class="border-2 border-gray-200 rounded-lg overflow-hidden bg-gray-50">
-            <!-- PDF Controls -->
-            <div class="bg-white border-b border-gray-200 px-4 py-2 flex items-center justify-end">
-              <a
-                :href="`/contract/${booking.id}`"
-                target="_blank"
-                class="text-sm text-primary hover:text-secondary font-medium flex items-center"
-              >
-                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                </svg>
-                Mở trong tab mới
-              </a>
-            </div>
-            
-            <div v-if="pdfLoading" class="flex items-center justify-center h-96">
-              <div class="text-center">
-                <div class="inline-block animate-spin rounded-full h-12 w-12 border-4 border-primary border-t-transparent mb-4"></div>
-                <p class="text-gray-600">Đang tải hợp đồng...</p>
-              </div>
-            </div>
-            
-            <div v-else-if="pdfError" class="p-8 text-center">
-              <ExclamationCircleIcon class="w-12 h-12 text-red-500 mx-auto mb-4" />
-              <p class="text-red-600 mb-4">{{ pdfError }}</p>
-              <div class="flex gap-3 justify-center">
-                <button
-                  @click="loadPdf"
-                  class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-secondary transition-colors"
-                >
-                  Thử lại
-                </button>
-                <a
-                  :href="`/contract/${booking.id}`"
-                  target="_blank"
-                  class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
-                >
-                  Tải PDF
-                </a>
-              </div>
-            </div>
-            
-            <div v-else class="pdf-viewer-container bg-gray-100" style="height: 800px; overflow: auto;">
-              <iframe
-                :src="pdfUrl"
-                class="w-full h-full"
-                style="border: none; min-height: 800px;"
-                @load="onPdfLoad"
-                @error="onPdfError"
-              ></iframe>
-            </div>
-          </div>
+          <PDFViewer
+            :pdf-url="pdfUrl"
+            :height="800"
+            :max-height="'800px'"
+            :show-controls="true"
+            @loaded="onPdfLoaded"
+            @error="onPdfError"
+          />
           
           <p class="text-xs text-gray-500 mt-3 text-center">
             Vui lòng đọc kỹ hợp đồng trước khi ký. Bạn có thể tải PDF để xem chi tiết hơn.
@@ -209,14 +165,14 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed } from 'vue'
 import { Head, router, useForm, Link } from '@inertiajs/vue3'
 import AppLayout from '@/layouts/AppLayout.vue'
 import SignaturePad from '@/components/ui/SignaturePad.vue'
+import PDFViewer from '@/components/ui/PDFViewer.vue'
 import {
   DocumentArrowDownIcon,
   InformationCircleIcon,
-  ExclamationCircleIcon,
 } from '@heroicons/vue/24/outline'
 
 const props = defineProps({
@@ -227,8 +183,6 @@ const props = defineProps({
 })
 
 const errorMessage = ref('')
-const pdfLoading = ref(true)
-const pdfError = ref('')
 
 const signatureForm = useForm({
   signature: '',
@@ -236,37 +190,17 @@ const signatureForm = useForm({
 })
 
 const pdfUrl = computed(() => {
-  return `/contract/${props.booking.id}?embed=true`
+  // Use preview route which checks cache first
+  return `/contract/${props.booking.id}/preview`
 })
 
-const onPdfLoad = () => {
-  pdfLoading.value = false
-  pdfError.value = ''
+const onPdfLoaded = () => {
+  // PDF loaded successfully
 }
 
 const onPdfError = () => {
-  pdfLoading.value = false
-  pdfError.value = 'Không thể tải hợp đồng. Vui lòng thử lại hoặc tải PDF để xem.'
+  // Error handled by PDFViewer component
 }
-
-const loadPdf = () => {
-  pdfLoading.value = true
-  pdfError.value = ''
-  // Force reload iframe
-  const iframe = document.querySelector('.pdf-viewer-container iframe')
-  if (iframe) {
-    iframe.src = iframe.src
-  }
-}
-
-onMounted(() => {
-  // Set timeout to hide loading if PDF takes too long
-  setTimeout(() => {
-    if (pdfLoading.value) {
-      pdfLoading.value = false
-    }
-  }, 10000) // 10 seconds timeout
-})
 
 const formatDate = (dateString) => {
   if (!dateString) return ''
