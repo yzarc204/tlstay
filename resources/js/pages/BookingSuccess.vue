@@ -442,7 +442,7 @@
 
 <script setup>
 import { ref, onMounted, computed } from 'vue'
-import { Head, Link, router } from '@inertiajs/vue3'
+import { Head, Link, router, usePage } from '@inertiajs/vue3'
 import AppLayout from '@/layouts/AppLayout.vue'
 import {
   CheckCircleIcon,
@@ -461,21 +461,38 @@ const props = defineProps({
   },
 })
 
+const page = usePage()
 const currentStep = ref(1)
 const step1Confirmed = ref(false)
 const step2Confirmed = ref(false)
 
-// Always start from step 1 when entering the page
+// Check if user just signed contract and should jump to step 3
 onMounted(() => {
-  // Reset to step 1 and clear localStorage to ensure fresh start
-  currentStep.value = 1
-  step1Confirmed.value = false
-  step2Confirmed.value = false
+  // Check if contract is signed and user just came from signing
+  const flashSuccess = page.props.flash?.success || ''
+  const isContractSignedSuccess = flashSuccess.includes('ký hợp đồng thành công') || 
+                                   flashSuccess.includes('đã ký hợp đồng')
   
-  // Clear any saved progress for this booking
-  localStorage.removeItem(`booking_${props.booking.id}_step1`)
-  localStorage.removeItem(`booking_${props.booking.id}_step2`)
-  localStorage.removeItem(`booking_${props.booking.id}_currentStep`)
+  // Check URL query parameter
+  const urlParams = new URLSearchParams(window.location.search)
+  const signedParam = urlParams.get('signed')
+  
+  // If contract is signed and user just signed it, jump to step 3
+  if (props.booking.contract_signed && (isContractSignedSuccess || signedParam === '1' || signedParam === 'true')) {
+    currentStep.value = 3
+    step1Confirmed.value = true
+    step2Confirmed.value = true
+  } else {
+    // Reset to step 1 and clear localStorage to ensure fresh start
+    currentStep.value = 1
+    step1Confirmed.value = false
+    step2Confirmed.value = false
+    
+    // Clear any saved progress for this booking
+    localStorage.removeItem(`booking_${props.booking.id}_step1`)
+    localStorage.removeItem(`booking_${props.booking.id}_step2`)
+    localStorage.removeItem(`booking_${props.booking.id}_currentStep`)
+  }
 })
 
 const goToStep = (step) => {

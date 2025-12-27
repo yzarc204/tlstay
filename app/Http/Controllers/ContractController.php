@@ -345,7 +345,10 @@ class ContractController extends Controller
             'contract_signed' => true,
         ]);
 
-        return redirect()->route('booking.success', $booking->id)
+        // Generate URL with query parameter
+        $url = route('booking.success', $booking->id) . '?signed=1';
+        
+        return redirect($url)
             ->with('success', 'Bạn đã ký hợp đồng thành công!');
     }
 }

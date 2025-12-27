@@ -217,11 +217,6 @@ const handleSign = () => {
   
   signatureForm.post(`/contract/${props.booking.id}/sign`, {
     preserveScroll: true,
-    onSuccess: () => {
-      router.visit(`/booking/${props.booking.id}/success`, {
-        data: { signed: true },
-      })
-    },
     onError: (errors) => {
       console.error('Sign contract errors:', errors)
       if (errors.message) {
@@ -229,5 +224,6 @@ const handleSign = () => {
       }
     },
   })
+  // Server will redirect to booking success page with signed=1 query parameter
 }
 </script>
