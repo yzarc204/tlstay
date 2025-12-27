@@ -7,7 +7,6 @@ use App\Models\House;
 use App\Models\Room;
 use App\Models\User;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\DB;
 
 class HouseSeeder extends Seeder
 {
@@ -37,11 +36,6 @@ class HouseSeeder extends Seeder
                 'phone' => '0123456789',
             ]);
         }
-
-        // Lấy danh sách customer để gán người thuê, loại trừ customer@tlstay.com và manager@tlstay.com
-        $customers = User::where('role', 'customer')
-            ->whereNotIn('email', ['customer@tlstay.com', 'manager@tlstay.com'])
-            ->get();
 
         // Danh sách tiện nghi
         $amenitiesList = [
@@ -97,7 +91,7 @@ class HouseSeeder extends Seeder
                 $roomPriceArray = [$basePriceInK];
             }
 
-            // Tạo nhà trọ
+            // Tạo nhà trọ (không gán rating và reviews, sẽ được tính từ BookingSeeder)
             $house = House::create([
                 'owner_id' => $owner->id,
                 'name' => $houseName,
@@ -110,8 +104,8 @@ class HouseSeeder extends Seeder
                 'price_per_day' => $basePrice,
                 'floors' => $floors,
                 'total_rooms' => $totalRooms,
-                'rating' => round(rand(40, 50) / 10, 1), // 3.5 - 5.0
-                'reviews' => rand(5, 50),
+                'rating' => 0,
+                'reviews' => 0,
                 'latitude' => 21.0 + (rand(0, 1000) / 10000), // Khoảng Hà Nội
                 'longitude' => 105.7 + (rand(0, 1000) / 10000),
             ]);
@@ -133,7 +127,7 @@ class HouseSeeder extends Seeder
                 }
             }
 
-            // Tạo phòng cho mỗi tầng
+            // Tạo phòng cho mỗi tầng (tất cả phòng ban đầu đều trống)
             foreach ($roomsPerFloor as $floor => $roomCount) {
                 for ($j = 1; $j <= $roomCount; $j++) {
                     // Tên phòng theo format: {tầng}{số thứ tự trong tầng}
@@ -161,38 +155,21 @@ class HouseSeeder extends Seeder
                         $roomAmenities = ['Nóng lạnh'];
                     }
 
-                    $room = Room::create([
+                    // Tạo phòng với trạng thái available (không có người thuê)
+                    // Thông tin người thuê sẽ được cập nhật từ BookingSeeder
+                    Room::create([
                         'house_id' => $house->id,
                         'room_number' => $roomNumber,
                         'floor' => $floor,
                         'price_per_day' => round($roomPrice, 2),
-                        'status' => 'available', // Mặc định là available, sẽ cập nhật sau nếu có người thuê
+                        'status' => 'available',
                         'area' => $area,
                         'amenities' => $roomAmenities,
+                        'tenant_id' => null,
+                        'tenant_name' => null,
+                        'rental_start_date' => null,
+                        'rental_end_date' => null,
                     ]);
-
-                    // 30% khả năng phòng có người thuê
-                    if (rand(0, 10) < 3) {
-                        $tenant = $customers->random();
-
-                        // Tạo ngày thuê: có thể đã bắt đầu hoặc sắp bắt đầu
-                        $daysAgo = rand(0, 60); // Có thể đã thuê từ 0-60 ngày trước
-                        $rentalStartDate = now()->subDays($daysAgo)->format('Y-m-d');
-
-                        // Thời gian thuê: từ 30-180 ngày
-                        $rentalDays = rand(30, 180);
-                        $rentalEndDate = now()->addDays($rentalDays)->format('Y-m-d');
-
-                        // Cập nhật thông tin người thuê vào phòng
-                        // Booking sẽ được tạo trong BookingSeeder
-                        $room->update([
-                            'tenant_id' => $tenant->id,
-                            'tenant_name' => $tenant->name,
-                            'rental_start_date' => $rentalStartDate,
-                            'rental_end_date' => $rentalEndDate,
-                            'status' => 'active',
-                        ]);
-                    }
                 }
             }
 

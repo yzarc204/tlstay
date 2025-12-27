@@ -98,7 +98,8 @@
       <!-- Personal Information Card -->
       <div class="bg-white rounded-lg shadow-sm p-6">
         <h3 class="text-lg font-semibold text-gray-900 mb-4">Thông tin cá nhân</h3>
-        <div v-if="user.id_card_number || user.permanent_address || user.date_of_birth || user.gender" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div v-if="hasPersonalInfo" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <!-- Số CCCD -->
           <div v-if="user.id_card_number" class="flex items-start gap-3">
             <div class="flex-shrink-0 mt-0.5">
               <IdentificationIcon class="h-5 w-5 text-gray-400" />
@@ -109,6 +110,29 @@
             </div>
           </div>
 
+          <!-- Ngày cấp CCCD -->
+          <div v-if="user.id_card_issue_date" class="flex items-start gap-3">
+            <div class="flex-shrink-0 mt-0.5">
+              <CalendarDaysIcon class="h-5 w-5 text-gray-400" />
+            </div>
+            <div>
+              <p class="text-xs font-medium text-gray-500 mb-1">Ngày cấp</p>
+              <p class="text-sm text-gray-900">{{ formatDateOnly(user.id_card_issue_date) }}</p>
+            </div>
+          </div>
+
+          <!-- Nơi cấp CCCD -->
+          <div v-if="user.id_card_issue_place" class="flex items-start gap-3 md:col-span-2">
+            <div class="flex-shrink-0 mt-0.5">
+              <BuildingLibraryIcon class="h-5 w-5 text-gray-400" />
+            </div>
+            <div class="flex-1">
+              <p class="text-xs font-medium text-gray-500 mb-1">Nơi cấp</p>
+              <p class="text-sm text-gray-900">{{ user.id_card_issue_place }}</p>
+            </div>
+          </div>
+
+          <!-- Ngày sinh -->
           <div v-if="user.date_of_birth" class="flex items-start gap-3">
             <div class="flex-shrink-0 mt-0.5">
               <CalendarIcon class="h-5 w-5 text-gray-400" />
@@ -119,6 +143,7 @@
             </div>
           </div>
 
+          <!-- Giới tính -->
           <div v-if="user.gender" class="flex items-start gap-3">
             <div class="flex-shrink-0 mt-0.5">
               <UserIcon class="h-5 w-5 text-gray-400" />
@@ -129,6 +154,7 @@
             </div>
           </div>
 
+          <!-- Địa chỉ thường trú -->
           <div v-if="user.permanent_address" class="flex items-start gap-3 md:col-span-2">
             <div class="flex-shrink-0 mt-0.5">
               <MapPinIcon class="h-5 w-5 text-gray-400" />
@@ -272,7 +298,7 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { Head, router, Link } from '@inertiajs/vue3'
 import AdminLayout from '@/layouts/AdminLayout.vue'
 import Button from '@/components/ui/Button.vue'
@@ -281,16 +307,28 @@ import {
   EnvelopeIcon,
   PhoneIcon,
   CalendarIcon,
+  CalendarDaysIcon,
   DocumentTextIcon,
   ShieldCheckIcon,
   ShieldExclamationIcon,
   IdentificationIcon,
   UserIcon,
   MapPinIcon,
+  BuildingLibraryIcon,
 } from '@heroicons/vue/24/outline'
 
 const props = defineProps({
   user: Object,
+})
+
+// Check if user has any personal information
+const hasPersonalInfo = computed(() => {
+  return props.user.id_card_number ||
+    props.user.id_card_issue_date ||
+    props.user.id_card_issue_place ||
+    props.user.permanent_address ||
+    props.user.date_of_birth ||
+    props.user.gender
 })
 
 const showBanModal = ref(false)

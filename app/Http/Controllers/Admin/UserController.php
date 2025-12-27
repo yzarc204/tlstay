@@ -135,6 +135,8 @@ class UserController extends Controller
                 'ban_reason' => $user->ban_reason,
                 'created_at' => $user->created_at?->toISOString(),
                 'id_card_number' => $user->id_card_number,
+                'id_card_issue_date' => $user->id_card_issue_date?->format('Y-m-d'),
+                'id_card_issue_place' => $user->id_card_issue_place,
                 'permanent_address' => $user->permanent_address,
                 'date_of_birth' => $user->date_of_birth?->format('Y-m-d'),
                 'gender' => $user->gender,
