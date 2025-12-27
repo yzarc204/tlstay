@@ -276,7 +276,8 @@
                                     >
                                         <span class="font-semibold text-primary"
                                             >Phòng
-                                            {{ selectedRoom.roomNumber }}</span
+                                            {{ selectedRoom.roomNumber }} - Tầng
+                                            {{ selectedRoom.floor }}</span
                                         >
                                         <button
                                             @click="
@@ -291,19 +292,67 @@
                                         </button>
                                     </div>
                                     <p class="text-sm text-gray-600">
-                                        Tầng {{ selectedRoom.floor }}
-                                    </p>
-                                    <p class="text-sm text-gray-600">
                                         Diện tích: {{ selectedRoom.area }}m²
                                     </p>
-                                    <p class="text-sm text-gray-600">
-                                        Giá gốc:
-                                        {{
-                                            formatPrice(
-                                                selectedRoom.pricePerDay
-                                            )
-                                        }}/ngày
-                                    </p>
+                                    <div class="mt-3 space-y-2">
+                                        <p
+                                            class="text-sm font-semibold text-gray-700 mb-2"
+                                        >
+                                            Giá thuê:
+                                        </p>
+                                        <div
+                                            class="flex items-center justify-between text-sm"
+                                        >
+                                            <span class="text-gray-600"
+                                                >Theo ngày:</span
+                                            >
+                                            <span
+                                                class="font-medium text-gray-900"
+                                            >
+                                                {{
+                                                    formatPrice(
+                                                        selectedRoom.pricePerDay
+                                                    )
+                                                }}
+                                            </span>
+                                        </div>
+                                        <div
+                                            class="flex items-center justify-between text-sm"
+                                        >
+                                            <span class="text-gray-600"
+                                                >Theo tuần:</span
+                                            >
+                                            <span
+                                                class="font-medium text-gray-900"
+                                            >
+                                                {{
+                                                    formatPrice(
+                                                        selectedRoom.pricePerWeek ||
+                                                            selectedRoom.pricePerDay *
+                                                                7
+                                                    )
+                                                }}
+                                            </span>
+                                        </div>
+                                        <div
+                                            class="flex items-center justify-between text-sm"
+                                        >
+                                            <span class="text-gray-600"
+                                                >Theo tháng:</span
+                                            >
+                                            <span
+                                                class="font-medium text-gray-900"
+                                            >
+                                                {{
+                                                    formatPrice(
+                                                        selectedRoom.pricePerMonth ||
+                                                            selectedRoom.pricePerDay *
+                                                                30
+                                                    )
+                                                }}
+                                            </span>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
 
@@ -590,18 +639,22 @@
                                             "
                                             class="text-xs text-primary"
                                         >
-                                            * Tiết kiệm {{
+                                            * Tiết kiệm
+                                            {{
                                                 formatPrice(
                                                     priceBreakdown.discount
                                                 )
-                                            }} so với thuê theo ngày
+                                            }}
+                                            so với thuê theo ngày
                                             <span
                                                 v-if="
                                                     priceBreakdown.hasCustomMonthPrice &&
-                                                    priceBreakdown.fullMonths > 0
+                                                    priceBreakdown.fullMonths >
+                                                        0
                                                 "
                                             >
-                                                ({{ priceBreakdown.fullMonths }} tháng với giá ưu đãi)
+                                                ({{ priceBreakdown.fullMonths }}
+                                                tháng với giá ưu đãi)
                                             </span>
                                             <span
                                                 v-if="
@@ -609,19 +662,29 @@
                                                     priceBreakdown.fullWeeks > 0
                                                 "
                                             >
-                                                <span v-if="priceBreakdown.hasCustomMonthPrice && priceBreakdown.fullMonths > 0">, </span>
-                                                ({{ priceBreakdown.fullWeeks }} tuần với giá ưu đãi)
+                                                <span
+                                                    v-if="
+                                                        priceBreakdown.hasCustomMonthPrice &&
+                                                        priceBreakdown.fullMonths >
+                                                            0
+                                                    "
+                                                    >,
+                                                </span>
+                                                ({{ priceBreakdown.fullWeeks }}
+                                                tuần với giá ưu đãi)
                                             </span>
                                         </p>
                                         <p
                                             v-else-if="
                                                 priceBreakdown &&
-                                                priceBreakdown.fullMonths === 0 &&
+                                                priceBreakdown.fullMonths ===
+                                                    0 &&
                                                 priceBreakdown.fullWeeks === 0
                                             "
                                             class="text-xs text-gray-500"
                                         >
-                                            * Thuê từ 7 ngày trở lên để được áp dụng giá tuần ưu đãi
+                                            * Thuê từ 7 ngày trở lên để được áp
+                                            dụng giá tuần ưu đãi
                                         </p>
                                         <p class="text-xs text-gray-500 mt-1">
                                             * Đã bao gồm thuế VAT
@@ -1481,7 +1544,7 @@ const calculatePrice = (room, days) => {
 
     // Tổng giá sau khi áp dụng giá ưu đãi
     const total = monthsPrice + weeksPrice + remainingPrice;
-    
+
     // Tính giảm giá so với việc thuê toàn bộ theo ngày (để hiển thị tiết kiệm)
     const fullDayPrice = days * pricePerDay;
     const discount = Math.max(0, fullDayPrice - total);
