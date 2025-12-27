@@ -58,28 +58,6 @@ class HouseSeeder extends Seeder
             $customers = User::where('role', 'customer')->get();
         }
 
-        // Danh sách tên nhà trọ mẫu
-        $houseNames = [
-            'Nhà trọ An Bình', 'Nhà trọ Hạnh Phúc', 'Nhà trọ Thành Công',
-            'Nhà trọ Minh Anh', 'Nhà trọ Thanh Bình', 'Nhà trọ Phúc Lộc',
-            'Nhà trọ Đức Anh', 'Nhà trọ Quang Minh', 'Nhà trọ Hồng Phúc',
-            'Nhà trọ Bình An', 'Nhà trọ Tân Phú', 'Nhà trọ Đông Anh',
-            'Nhà trọ Tây Hồ', 'Nhà trọ Nam Sơn', 'Nhà trọ Bắc Giang',
-            'Nhà trọ Trung Tâm', 'Nhà trọ Cổ Nhuế', 'Nhà trọ Mỹ Đình',
-            'Nhà trọ Cầu Giấy', 'Nhà trọ Ba Đình', 'Nhà trọ Hoàn Kiếm',
-            'Nhà trọ Hai Bà Trưng', 'Nhà trọ Đống Đa', 'Nhà trọ Tây Hồ',
-            'Nhà trọ Cầu Giấy', 'Nhà trọ Thanh Xuân', 'Nhà trọ Hoàng Mai',
-            'Nhà trọ Long Biên', 'Nhà trọ Nam Từ Liêm', 'Nhà trọ Bắc Từ Liêm',
-            'Nhà trọ Mỹ Đức', 'Nhà trọ Ứng Hòa', 'Nhà trọ Phú Xuyên',
-            'Nhà trọ Thường Tín', 'Nhà trọ Phúc Thọ', 'Nhà trọ Đan Phượng',
-            'Nhà trọ Hoài Đức', 'Nhà trọ Quốc Oai', 'Nhà trọ Thạch Thất',
-            'Nhà trọ Chương Mỹ', 'Nhà trọ Thanh Oai', 'Nhà trọ Mỹ Đức',
-            'Nhà trọ Ứng Hòa', 'Nhà trọ Phú Xuyên', 'Nhà trọ Thường Tín',
-            'Nhà trọ Phúc Thọ', 'Nhà trọ Đan Phượng', 'Nhà trọ Hoài Đức',
-            'Nhà trọ Quốc Oai', 'Nhà trọ Thạch Thất', 'Nhà trọ Chương Mỹ',
-            'Nhà trọ Thanh Oai', 'Nhà trọ Mỹ Đức', 'Nhà trọ Ứng Hòa',
-        ];
-
         // Danh sách tiện nghi
         $amenitiesList = [
             ['WiFi', 'Điều hòa', 'Nóng lạnh', 'Tủ lạnh'],
@@ -96,7 +74,9 @@ class HouseSeeder extends Seeder
             $ward = $street->parent;
 
             // Tạo số nhà ngẫu nhiên
-            $streetDetail = 'Số ' . rand(1, 999) . ', Ngõ ' . rand(1, 50);
+            $houseNumber = rand(1, 999);
+            $alleyNumber = rand(1, 50);
+            $streetDetail = 'Số ' . $houseNumber . ', Ngõ ' . $alleyNumber;
 
             // Xây dựng địa chỉ đầy đủ
             $addressParts = [$streetDetail, $street->name];
@@ -105,19 +85,22 @@ class HouseSeeder extends Seeder
             }
             $fullAddress = implode(', ', $addressParts);
 
+            // Tạo tên nhà trọ theo format: "Tên đường + Số"
+            $houseName = $street->name . ' ' . $houseNumber;
+
             // Số phòng từ 10-15
             $totalRooms = rand(10, 15);
             
             // Số tầng từ 2-4 (tùy số phòng)
             $floors = min(4, max(2, ceil($totalRooms / 5)));
 
-            // Giá cơ bản từ 150k - 250k/ngày (cho phòng)
-            $basePrice = rand(150000, 250000);
+            // Giá cơ bản từ 150k - 250k/ngày (cho phòng) - số chẵn
+            $basePrice = rand(150, 250) * 1000; // Random số chẵn từ 150k đến 250k
 
             // Tạo nhà trọ
             $house = House::create([
                 'owner_id' => $owner->id,
-                'name' => $houseNames[$i % count($houseNames)] . ' ' . ($i + 1),
+                'name' => $houseName,
                 'address' => $fullAddress,
                 'street_detail' => $streetDetail,
                 'ward_id' => $ward ? $ward->id : null,
@@ -159,8 +142,8 @@ class HouseSeeder extends Seeder
                     // Ví dụ: Tầng 1 -> 101, 102, 103... | Tầng 2 -> 201, 202, 203...
                     $roomNumber = (string)($floor * 100 + $j);
                     
-                    // Giá phòng trong khoảng 150k - 250k/ngày
-                    $roomPrice = rand(150000, 250000);
+                    // Giá phòng trong khoảng 150k - 250k/ngày - số chẵn
+                    $roomPrice = rand(150, 250) * 1000; // Random số chẵn từ 150k đến 250k
                     
                     // Diện tích từ 15-30 m²
                     $area = rand(15, 30);

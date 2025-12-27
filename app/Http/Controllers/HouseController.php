@@ -47,8 +47,8 @@ class HouseController extends Controller
             }
         }
 
-        $houses = $query->get()
-            ->map(function ($house) {
+        $houses = $query->paginate(12)->withQueryString()
+            ->through(function ($house) {
                 // Calculate available rooms count based on effective status
                 $availableRoomsCount = $house->rooms->filter(function ($room) {
                     return $room->getEffectiveStatus() === 'available';
@@ -69,8 +69,7 @@ class HouseController extends Controller
                     'ward_name' => $house->wardAddress ? $house->wardAddress->name : null,
                     'street_name' => $house->streetAddress ? $house->streetAddress->name : null,
                 ];
-            })
-            ->values();
+            });
 
         // Get all wards and streets for filter dropdowns
         $wards = Address::where('type', 'ward')

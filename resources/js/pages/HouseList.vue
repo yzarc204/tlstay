@@ -173,15 +173,25 @@
         <!-- Results Count -->
         <div class="flex items-center justify-between mb-6">
           <p class="text-gray-600">
-            Tìm thấy
-            <span class="font-semibold text-secondary">{{ houses.length }}</span> nhà trọ
+            <span v-if="houses.data && houses.data.length > 0">
+              Hiển thị
+              <span class="font-semibold text-secondary">{{ houses.from }}</span>
+              đến
+              <span class="font-semibold text-secondary">{{ houses.to }}</span>
+              trong tổng số
+              <span class="font-semibold text-secondary">{{ houses.total }}</span> nhà trọ
+            </span>
+            <span v-else>
+              Tìm thấy
+              <span class="font-semibold text-secondary">0</span> nhà trọ
+            </span>
           </p>
         </div>
 
         <!-- Houses Grid/List -->
         <div>
           <!-- Empty State -->
-          <div v-if="houses.length === 0" class="text-center py-20">
+          <div v-if="!houses.data || houses.data.length === 0" class="text-center py-20">
             <BuildingOfficeIcon class="w-24 h-24 mx-auto text-gray-300 mb-4" />
             <h3 class="text-2xl font-bold text-gray-400 mb-2">Không tìm thấy nhà trọ</h3>
             <p class="text-gray-500 mb-4">Thử điều chỉnh bộ lọc của bạn</p>
@@ -253,6 +263,36 @@
               </div>
             </div>
           </div>
+
+          <!-- Pagination -->
+          <div v-if="houses.links && houses.links.length > 3" class="mt-8 flex justify-center">
+            <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+              <template v-for="(link, index) in houses.links" :key="index">
+                <Link
+                  v-if="link.url"
+                  :href="link.url"
+                  v-html="getPaginationLabel(link.label)"
+                  :class="[
+                    'relative inline-flex items-center px-4 py-2 border text-sm font-medium transition-colors',
+                    link.active
+                      ? 'z-10 bg-primary border-primary text-white'
+                      : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50',
+                    index === 0 ? 'rounded-l-md' : '',
+                    index === houses.links.length - 1 ? 'rounded-r-md' : ''
+                  ]"
+                />
+                <span
+                  v-else
+                  v-html="getPaginationLabel(link.label)"
+                  class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-300"
+                  :class="[
+                    index === 0 ? 'rounded-l-md' : '',
+                    index === houses.links.length - 1 ? 'rounded-r-md' : ''
+                  ]"
+                />
+              </template>
+            </nav>
+          </div>
         </div>
       </div>
     </div>
@@ -261,7 +301,7 @@
 
 <script setup>
 import { ref, computed, watch } from 'vue'
-import { Head, router } from '@inertiajs/vue3'
+import { Head, Link, router } from '@inertiajs/vue3'
 import AppLayout from '@/layouts/AppLayout.vue'
 import HouseCard from '@/components/house/HouseCard.vue'
 import { getAmenityIcon, getAmenityName } from '@/utils/amenityIcons'
@@ -276,8 +316,8 @@ import {
 
 const props = defineProps({
   houses: {
-    type: Array,
-    default: () => [],
+    type: Object,
+    default: () => ({ data: [], links: [] }),
   },
   filters: {
     type: Object,
@@ -330,7 +370,7 @@ const hasActiveFilters = computed(() => {
 
 // Apply sorting
 const sortedHouses = computed(() => {
-  let houses = [...props.houses]
+  let houses = props.houses.data ? [...props.houses.data] : []
 
   if (sortBy.value === 'price-asc') {
     houses.sort((a, b) => a.pricePerDay - b.pricePerDay)
@@ -402,5 +442,21 @@ const clearAllFilters = () => {
 
 const goToDetail = (id) => {
   router.visit(`/houses/${id}`)
+}
+
+// Convert pagination labels to Vietnamese
+const getPaginationLabel = (label) => {
+  if (!label) return label
+  
+  // Replace Previous/Next with Vietnamese
+  let translated = label
+    .replace(/&laquo;\s*Previous/gi, 'Trước')
+    .replace(/Previous/gi, 'Trước')
+    .replace(/&laquo;/g, 'Trước')
+    .replace(/Next\s*&raquo;/gi, 'Sau')
+    .replace(/Next/gi, 'Sau')
+    .replace(/&raquo;/g, 'Sau')
+  
+  return translated
 }
 </script>
