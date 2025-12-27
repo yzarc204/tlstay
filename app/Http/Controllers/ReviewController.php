@@ -89,6 +89,7 @@ class ReviewController extends Controller
             }
 
             // Create review
+            // Rating sẽ tự động được cập nhật thông qua Model Events trong Review model
             $review = Review::create([
                 'booking_id' => $booking->id,
                 'user_id' => $user->id,
@@ -97,9 +98,6 @@ class ReviewController extends Controller
                 'comment' => $request->comment,
                 'images' => !empty($imagePaths) ? $imagePaths : null,
             ]);
-
-            // Update house rating and reviews count
-            $this->updateHouseRating($booking->house_id);
 
             DB::commit();
 
@@ -110,26 +108,4 @@ class ReviewController extends Controller
         }
     }
 
-    /**
-     * Update house rating and reviews count based on all reviews.
-     */
-    private function updateHouseRating($houseId)
-    {
-        $house = House::findOrFail($houseId);
-        
-        $reviews = Review::where('house_id', $houseId)->get();
-        
-        if ($reviews->count() > 0) {
-            $averageRating = $reviews->avg('rating');
-            $house->update([
-                'rating' => round($averageRating, 2),
-                'reviews' => $reviews->count(),
-            ]);
-        } else {
-            $house->update([
-                'rating' => 0,
-                'reviews' => 0,
-            ]);
-        }
-    }
 }

@@ -590,42 +590,38 @@
                                             "
                                             class="text-xs text-primary"
                                         >
-                                            * Đã giảm 20% cho
-                                            {{ priceBreakdown.fullMonths }}
-                                            tháng ({{
-                                                priceBreakdown.fullMonths * 30
-                                            }}
-                                            ngày)
+                                            * Tiết kiệm {{
+                                                formatPrice(
+                                                    priceBreakdown.discount
+                                                )
+                                            }} so với thuê theo ngày
                                             <span
                                                 v-if="
+                                                    priceBreakdown.hasCustomMonthPrice &&
+                                                    priceBreakdown.fullMonths > 0
+                                                "
+                                            >
+                                                ({{ priceBreakdown.fullMonths }} tháng với giá ưu đãi)
+                                            </span>
+                                            <span
+                                                v-if="
+                                                    priceBreakdown.hasCustomWeekPrice &&
                                                     priceBreakdown.fullWeeks > 0
                                                 "
-                                                >và 10% cho
-                                                {{ priceBreakdown.fullWeeks }}
-                                                tuần ({{
-                                                    priceBreakdown.fullWeeks * 7
-                                                }}
-                                                ngày)</span
-                                            >.
-                                            <span
-                                                v-if="
-                                                    priceBreakdown.remainingDays >
-                                                    0
-                                                "
-                                                >{{
-                                                    priceBreakdown.remainingDays
-                                                }}
-                                                ngày lẻ tính theo giá gốc.</span
                                             >
+                                                <span v-if="priceBreakdown.hasCustomMonthPrice && priceBreakdown.fullMonths > 0">, </span>
+                                                ({{ priceBreakdown.fullWeeks }} tuần với giá ưu đãi)
+                                            </span>
                                         </p>
                                         <p
                                             v-else-if="
-                                                rentalDays > 0 && rentalDays < 7
+                                                priceBreakdown &&
+                                                priceBreakdown.fullMonths === 0 &&
+                                                priceBreakdown.fullWeeks === 0
                                             "
                                             class="text-xs text-gray-500"
                                         >
-                                            * Chưa đủ điều kiện giảm giá (cần
-                                            thuê từ 7 ngày trở lên)
+                                            * Thuê từ 7 ngày trở lên để được áp dụng giá tuần ưu đãi
                                         </p>
                                         <p class="text-xs text-gray-500 mt-1">
                                             * Đã bao gồm thuế VAT
@@ -1442,30 +1438,64 @@ const calculateBreakdown = (days) => {
     return { fullMonths, fullWeeks, remainingDays };
 };
 
-// Tính giá dựa trên pricePerDay và số ngày thuê, tự động phân tích thành tháng/tuần/ngày
-const calculatePrice = (pricePerDay, days) => {
-    if (!pricePerDay || !days)
+// Tính giá dựa trên giá có sẵn (ngày, tuần, tháng), tự động phân tích thành tháng/tuần/ngày
+// Ưu tiên sử dụng giá ưu đãi (tháng/tuần) để khách hàng được tiết kiệm
+const calculatePrice = (room, days) => {
+    if (!room || !days || days <= 0)
         return { total: 0, discount: 0, breakdown: null };
 
+    const pricePerDay = room.pricePerDay || 0;
+    const pricePerWeek = room.pricePerWeek || null;
+    const pricePerMonth = room.pricePerMonth || null;
+
+    // Phân tích số ngày thành tháng/tuần/ngày
     const { fullMonths, fullWeeks, remainingDays } = calculateBreakdown(days);
 
-    // Tính giá cho từng phần
-    const monthsPrice = fullMonths * 30 * pricePerDay * 0.8; // Giảm 20% cho tháng
-    const weeksPrice = fullWeeks * 7 * pricePerDay * 0.9; // Giảm 10% cho tuần
-    const remainingPrice = remainingDays * pricePerDay; // Không giảm cho ngày lẻ
+    // Tính giá cho từng phần - ưu tiên giá ưu đãi
+    // 1. Tháng: Nếu có giá tháng riêng (ưu đãi) thì dùng, nếu không thì tính giá ngày × 30
+    let monthsPrice = 0;
+    if (fullMonths > 0) {
+        if (pricePerMonth !== null && pricePerMonth > 0) {
+            // Sử dụng giá tháng ưu đãi
+            monthsPrice = fullMonths * pricePerMonth;
+        } else {
+            // Fallback: tính từ giá ngày × 30
+            monthsPrice = fullMonths * pricePerDay * 30;
+        }
+    }
 
+    // 2. Tuần: Nếu có giá tuần riêng (ưu đãi) thì dùng, nếu không thì tính giá ngày × 7
+    let weeksPrice = 0;
+    if (fullWeeks > 0) {
+        if (pricePerWeek !== null && pricePerWeek > 0) {
+            // Sử dụng giá tuần ưu đãi
+            weeksPrice = fullWeeks * pricePerWeek;
+        } else {
+            // Fallback: tính từ giá ngày × 7
+            weeksPrice = fullWeeks * pricePerDay * 7;
+        }
+    }
+
+    // 3. Ngày lẻ: Luôn tính theo giá ngày
+    const remainingPrice = remainingDays * pricePerDay;
+
+    // Tổng giá sau khi áp dụng giá ưu đãi
     const total = monthsPrice + weeksPrice + remainingPrice;
-    const discount =
-        fullMonths * 30 * pricePerDay * 0.2 + fullWeeks * 7 * pricePerDay * 0.1;
+    
+    // Tính giảm giá so với việc thuê toàn bộ theo ngày (để hiển thị tiết kiệm)
+    const fullDayPrice = days * pricePerDay;
+    const discount = Math.max(0, fullDayPrice - total);
 
     const breakdown = {
         fullMonths,
         fullWeeks,
         remainingDays,
-        monthsPrice,
-        weeksPrice,
-        remainingPrice,
-        discount,
+        monthsPrice: Math.round(monthsPrice),
+        weeksPrice: Math.round(weeksPrice),
+        remainingPrice: Math.round(remainingPrice),
+        discount: Math.round(discount),
+        hasCustomWeekPrice: pricePerWeek !== null && pricePerWeek > 0,
+        hasCustomMonthPrice: pricePerMonth !== null && pricePerMonth > 0,
     };
 
     return {
@@ -1478,12 +1508,11 @@ const calculatePrice = (pricePerDay, days) => {
 const totalAmount = computed(() => {
     if (!selectedRoom.value) return 0;
 
-    const pricePerDay = selectedRoom.value.pricePerDay || 0;
     const days = calculateDays(startDate.value, endDate.value);
 
     if (days === 0) return 0;
 
-    const result = calculatePrice(pricePerDay, days);
+    const result = calculatePrice(selectedRoom.value, days);
     return result.total;
 });
 
@@ -1491,12 +1520,11 @@ const totalAmount = computed(() => {
 const priceBreakdown = computed(() => {
     if (!selectedRoom.value) return null;
 
-    const pricePerDay = selectedRoom.value.pricePerDay || 0;
     const days = calculateDays(startDate.value, endDate.value);
 
     if (days === 0) return null;
 
-    const result = calculatePrice(pricePerDay, days);
+    const result = calculatePrice(selectedRoom.value, days);
     return result.breakdown;
 });
 
@@ -1504,12 +1532,11 @@ const priceBreakdown = computed(() => {
 const totalDiscount = computed(() => {
     if (!selectedRoom.value) return 0;
 
-    const pricePerDay = selectedRoom.value.pricePerDay || 0;
     const days = calculateDays(startDate.value, endDate.value);
 
     if (days === 0) return 0;
 
-    const result = calculatePrice(pricePerDay, days);
+    const result = calculatePrice(selectedRoom.value, days);
     return result.discount;
 });
 
