@@ -45,12 +45,12 @@ class BookingSeeder extends Seeder
     public function run(): void
     {
         $today = Carbon::today();
-        
+
         // Lấy danh sách customer, loại trừ customer@tlstay.com và manager@tlstay.com
         $customers = User::where('role', 'customer')
             ->whereNotIn('email', ['customer@tlstay.com', 'manager@tlstay.com'])
             ->get();
-        
+
         if ($customers->isEmpty()) {
             $this->command->warn('Không có customer nào để tạo booking. Vui lòng chạy UserSeeder trước.');
             return;
@@ -58,7 +58,7 @@ class BookingSeeder extends Seeder
 
         // Lấy tất cả các nhà với phòng
         $houses = House::with('rooms')->get();
-        
+
         if ($houses->isEmpty()) {
             $this->command->warn('Không có nhà nào để tạo booking. Vui lòng chạy HouseSeeder trước.');
             return;
@@ -75,7 +75,7 @@ class BookingSeeder extends Seeder
 
         foreach ($houses as $house) {
             $rooms = $house->rooms;
-            
+
             if ($rooms->isEmpty()) {
                 continue;
             }
@@ -108,12 +108,12 @@ class BookingSeeder extends Seeder
                     $startDate = $today->copy()->subDays($daysAgo);
                     $rentalDuration = rand(30, 180); // Thuê từ 1-6 tháng
                     $endDate = $startDate->copy()->addDays($rentalDuration);
-                    
+
                     // Đảm bảo end_date > today
                     if ($endDate->lte($today)) {
                         $endDate = $today->copy()->addDays(rand(10, 90));
                     }
-                    
+
                     $bookingStatus = 'active';
                     $status = 'active';
                 } else {
@@ -122,7 +122,7 @@ class BookingSeeder extends Seeder
                     $startDate = $today->copy()->addDays($daysLater);
                     $rentalDuration = rand(30, 180);
                     $endDate = $startDate->copy()->addDays($rentalDuration);
-                    
+
                     $bookingStatus = 'upcoming';
                     $status = 'active';
                 }
@@ -158,7 +158,7 @@ class BookingSeeder extends Seeder
 
                 if ($bookingStatus === 'active') {
                     $activeBookingCount++;
-                    
+
                     // === CẬP NHẬT THÔNG TIN NGƯỜI THUÊ VÀO PHÒNG ===
                     // Chỉ cập nhật cho booking đang ở (start_date <= today <= end_date)
                     $room->update([
@@ -177,7 +177,7 @@ class BookingSeeder extends Seeder
             // === TẠO LỊCH SỬ THUÊ TRONG QUÁ KHỨ ===
             // Mỗi nhà có 3-8 booking đã hoàn thành
             $pastBookingsToCreate = rand(3, 8);
-            
+
             for ($i = 0; $i < $pastBookingsToCreate; $i++) {
                 // Chọn customer
                 $customer = $availableCustomers[$customerIndex % $availableCustomers->count()];
@@ -189,7 +189,7 @@ class BookingSeeder extends Seeder
                 // Tạo ngày thuê trong quá khứ (từ 1-12 tháng trước)
                 $monthsAgo = rand(1, 12);
                 $rentalDuration = rand(7, 90); // Thuê từ 1 tuần đến 3 tháng
-                
+
                 $endDate = $today->copy()->subMonths($monthsAgo)->subDays(rand(1, 28));
                 $startDate = $endDate->copy()->subDays($rentalDuration);
 
@@ -238,10 +238,10 @@ class BookingSeeder extends Seeder
                 if (rand(1, 100) <= 80) {
                     // Đánh giá từ 4-5 sao
                     $rating = rand(4, 5);
-                    
+
                     // Chọn ngẫu nhiên bình luận
                     $comment = $this->positiveComments[array_rand($this->positiveComments)];
-                    
+
                     // 30% có phản hồi từ quản lý
                     $hasManagerResponse = rand(1, 100) <= 30;
                     $managerResponses = [
