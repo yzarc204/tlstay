@@ -94,8 +94,8 @@ class HouseSeeder extends Seeder
             // Số tầng từ 2-4 (tùy số phòng)
             $floors = min(4, max(2, ceil($totalRooms / 5)));
 
-            // Giá cơ bản từ 150k - 250k/ngày (cho phòng) - số chẵn
-            $basePrice = rand(150, 250) * 1000; // Random số chẵn từ 150k đến 250k
+            // Giá cơ bản từ 105k - 250k/ngày (cho phòng) - số chẵn
+            $basePrice = rand(105, 250) * 1000; // Random số chẵn từ 105k đến 250k
 
             // Tạo nhà trọ
             $house = House::create([
