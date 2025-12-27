@@ -49,7 +49,7 @@ class HouseSeeder extends Seeder
 
         $count = min($count, count($images));
         $keys = array_rand($images, $count);
-        
+
         if (!is_array($keys)) {
             $keys = [$keys];
         }
@@ -91,7 +91,7 @@ class HouseSeeder extends Seeder
 
         // Lấy danh sách ảnh mẫu
         $sampleImages = $this->getSampleImages();
-        
+
         if (empty($sampleImages)) {
             $this->command->warn('Không tìm thấy ảnh mẫu trong storage/app/public/sample-images/');
             $this->command->info('Tiếp tục tạo nhà trọ không có ảnh...');
@@ -109,6 +109,15 @@ class HouseSeeder extends Seeder
             ['Wifi', 'AirConditioning', 'HotWater', 'PrivateBathroom', 'Balcony'],
             ['Wifi', 'AirConditioning', 'HotWater', 'Refrigerator', 'Bed', 'Wardrobe'],
         ];
+
+        // Mảng giá ngày từ 180k - 250k, mỗi giá cách nhau 10k (đơn vị nghìn)
+        $dayPriceArray = range(180, 250, 10);
+
+        // Mảng giá tuần từ 1m - 2m, mỗi giá cách nhau 100k (đơn vị nghìn)
+        $weekPriceArray = range(1000, 2000, 100);
+
+        // Mảng giá tháng từ 3m - 5m, mỗi giá cách nhau 200k (đơn vị nghìn)
+        $monthPriceArray = range(3000, 5000, 200);
 
         // Tạo 50 nhà trọ
         for ($i = 0; $i < 50; $i++) {
@@ -137,20 +146,43 @@ class HouseSeeder extends Seeder
             // Số tầng từ 2-4 (tùy số phòng)
             $floors = min(4, max(2, ceil($totalRooms / 5)));
 
-            // Tạo mảng giá từ 100 đến 300 (bước 10)
-            $priceArray = range(100, 300, 10);
+            // Chọn giá ngày ngẫu nhiên từ mảng
+            $basePriceInK = $dayPriceArray[array_rand($dayPriceArray)];
+            $basePrice = $basePriceInK * 1000;
 
-            // Giá cơ bản từ 100k - 300k/ngày (cho nhà trọ) - random từ mảng
-            $basePrice = $priceArray[array_rand($priceArray)] * 1000;
-            
+            // Lọc giá tuần: chỉ lấy các giá tuần sao cho giá tuần/7 >= giá ngày
+            // Để đảm bảo giá tuần/ngày >= giá ngày (tiết kiệm khi đặt nhiều)
+            $validWeekPrices = array_filter($weekPriceArray, function ($weekPrice) use ($basePriceInK) {
+                return ($weekPrice / 7) >= $basePriceInK;
+            });
+            $validWeekPrices = array_values($validWeekPrices);
+            if (empty($validWeekPrices)) {
+                // Nếu không có giá tuần hợp lệ, chọn giá tuần nhỏ nhất thỏa mãn điều kiện
+                $minWeekPrice = ceil($basePriceInK * 7 / 100) * 100; // Làm tròn lên đến bội số 100
+                $validWeekPrices = [max($minWeekPrice, 1000)]; // Tối thiểu 1000k
+            }
+            $pricePerWeek = $validWeekPrices[array_rand($validWeekPrices)] * 1000;
+
+            // Lọc giá tháng: chỉ lấy các giá tháng sao cho giá tháng/30 >= giá ngày
+            // Để đảm bảo giá tháng/ngày >= giá ngày (tiết kiệm khi đặt nhiều)
+            $validMonthPrices = array_filter($monthPriceArray, function ($monthPrice) use ($basePriceInK) {
+                return ($monthPrice / 30) >= $basePriceInK;
+            });
+            $validMonthPrices = array_values($validMonthPrices);
+            if (empty($validMonthPrices)) {
+                // Nếu không có giá tháng hợp lệ, chọn giá tháng nhỏ nhất thỏa mãn điều kiện
+                $minMonthPrice = ceil($basePriceInK * 30 / 200) * 200; // Làm tròn lên đến bội số 200
+                $validMonthPrices = [max($minMonthPrice, 3000)]; // Tối thiểu 3000k
+            }
+            $pricePerMonth = $validMonthPrices[array_rand($validMonthPrices)] * 1000;
+
             // Lọc mảng giá phòng: chỉ lấy các giá >= giá nhà (để đảm bảo giá phòng >= giá nhà)
-            $basePriceInK = $basePrice / 1000; // Chuyển về đơn vị nghìn
-            $roomPriceArray = array_filter($priceArray, function($price) use ($basePriceInK) {
+            $roomPriceArray = array_filter($dayPriceArray, function ($price) use ($basePriceInK) {
                 return $price >= $basePriceInK;
             });
             // Reset lại key của mảng để array_rand hoạt động đúng
             $roomPriceArray = array_values($roomPriceArray);
-            // Đảm bảo mảng không rỗng (nếu basePrice = 300, thì roomPriceArray sẽ có ít nhất [300])
+            // Đảm bảo mảng không rỗng
             if (empty($roomPriceArray)) {
                 $roomPriceArray = [$basePriceInK];
             }
@@ -174,6 +206,8 @@ class HouseSeeder extends Seeder
                 'featured_images' => $featuredImages,
                 'image' => $mainImage,
                 'price_per_day' => $basePrice,
+                'price_per_week' => $pricePerWeek,
+                'price_per_month' => $pricePerMonth,
                 'floors' => $floors,
                 'total_rooms' => $totalRooms,
                 'rating' => 0,
@@ -207,7 +241,30 @@ class HouseSeeder extends Seeder
                     $roomNumber = (string) ($floor * 100 + $j);
 
                     // Giá phòng từ mảng giá, đảm bảo >= giá nhà
-                    $roomPrice = $roomPriceArray[array_rand($roomPriceArray)] * 1000;
+                    $roomPriceInK = $roomPriceArray[array_rand($roomPriceArray)];
+                    $roomPrice = $roomPriceInK * 1000;
+
+                    // Lọc giá tuần cho phòng: chỉ lấy các giá tuần sao cho giá tuần/7 >= giá phòng ngày
+                    $validRoomWeekPrices = array_filter($weekPriceArray, function ($weekPrice) use ($roomPriceInK) {
+                        return ($weekPrice / 7) >= $roomPriceInK;
+                    });
+                    $validRoomWeekPrices = array_values($validRoomWeekPrices);
+                    if (empty($validRoomWeekPrices)) {
+                        $minRoomWeekPrice = ceil($roomPriceInK * 7 / 100) * 100;
+                        $validRoomWeekPrices = [max($minRoomWeekPrice, 1000)];
+                    }
+                    $roomPricePerWeek = $validRoomWeekPrices[array_rand($validRoomWeekPrices)] * 1000;
+
+                    // Lọc giá tháng cho phòng: chỉ lấy các giá tháng sao cho giá tháng/30 >= giá phòng ngày
+                    $validRoomMonthPrices = array_filter($monthPriceArray, function ($monthPrice) use ($roomPriceInK) {
+                        return ($monthPrice / 30) >= $roomPriceInK;
+                    });
+                    $validRoomMonthPrices = array_values($validRoomMonthPrices);
+                    if (empty($validRoomMonthPrices)) {
+                        $minRoomMonthPrice = ceil($roomPriceInK * 30 / 200) * 200;
+                        $validRoomMonthPrices = [max($minRoomMonthPrice, 3000)];
+                    }
+                    $roomPricePerMonth = $validRoomMonthPrices[array_rand($validRoomMonthPrices)] * 1000;
 
                     // Diện tích từ 15-30 m²
                     $area = rand(15, 30);
@@ -243,6 +300,8 @@ class HouseSeeder extends Seeder
                         'room_number' => $roomNumber,
                         'floor' => $floor,
                         'price_per_day' => round($roomPrice, 2),
+                        'price_per_week' => $roomPricePerWeek,
+                        'price_per_month' => $roomPricePerMonth,
                         'status' => 'available',
                         'area' => $area,
                         'amenities' => $roomAmenities,
