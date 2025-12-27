@@ -176,4 +176,10 @@ Route::middleware(['auth', 'role:manager'])->group(function () {
         Route::delete('/{review}/response', [\App\Http\Controllers\Admin\ReviewController::class, 'deleteResponse'])->name('delete-response');
         Route::delete('/{review}', [\App\Http\Controllers\Admin\ReviewController::class, 'destroy'])->name('destroy');
     });
+
+    // Booking Management
+    Route::prefix('admin/bookings')->name('admin.bookings.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Admin\BookingController::class, 'index'])->name('index');
+        Route::get('/{booking}', [\App\Http\Controllers\Admin\BookingController::class, 'show'])->name('show');
+    });
 });
