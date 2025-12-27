@@ -82,8 +82,20 @@ class HouseSeeder extends Seeder
             // Tạo mảng giá từ 100 đến 300 (bước 10)
             $priceArray = range(100, 300, 10);
 
-            // Giá cơ bản từ 100k - 300k/ngày (cho phòng) - random từ mảng
+            // Giá cơ bản từ 100k - 300k/ngày (cho nhà trọ) - random từ mảng
             $basePrice = $priceArray[array_rand($priceArray)] * 1000;
+            
+            // Lọc mảng giá phòng: chỉ lấy các giá >= giá nhà (để đảm bảo giá phòng >= giá nhà)
+            $basePriceInK = $basePrice / 1000; // Chuyển về đơn vị nghìn
+            $roomPriceArray = array_filter($priceArray, function($price) use ($basePriceInK) {
+                return $price >= $basePriceInK;
+            });
+            // Reset lại key của mảng để array_rand hoạt động đúng
+            $roomPriceArray = array_values($roomPriceArray);
+            // Đảm bảo mảng không rỗng (nếu basePrice = 300, thì roomPriceArray sẽ có ít nhất [300])
+            if (empty($roomPriceArray)) {
+                $roomPriceArray = [$basePriceInK];
+            }
 
             // Tạo nhà trọ
             $house = House::create([
@@ -128,8 +140,8 @@ class HouseSeeder extends Seeder
                     // Ví dụ: Tầng 1 -> 101, 102, 103... | Tầng 2 -> 201, 202, 203...
                     $roomNumber = (string) ($floor * 100 + $j);
 
-                    // Giá phòng trong khoảng 150k - 250k/ngày - số chẵn
-                    $roomPrice = rand(150, 250) * 1000; // Random số chẵn từ 150k đến 250k
+                    // Giá phòng từ mảng giá, đảm bảo >= giá nhà
+                    $roomPrice = $roomPriceArray[array_rand($roomPriceArray)] * 1000;
 
                     // Diện tích từ 15-30 m²
                     $area = rand(15, 30);
