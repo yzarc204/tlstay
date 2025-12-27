@@ -52,7 +52,7 @@
       <div class="flex items-center justify-between">
         <div>
           <p class="text-2xl font-bold text-primary">
-            {{ formatPrice(calculateMonthlyPrice(house.pricePerDay)) }}
+            {{ formatPrice(calculateMonthlyPrice()) }}
             <span class="text-sm text-gray-500 font-normal">/tháng</span>
           </p>
           <p class="text-sm text-gray-500">{{ formatPrice(house.pricePerDay) }}/ngày</p>
@@ -86,10 +86,15 @@ const formatPrice = (price) => {
   }).format(price)
 }
 
-// Tính giá theo tháng từ giá ngày (giảm 20%)
-const calculateMonthlyPrice = (pricePerDay) => {
-  if (!pricePerDay) return 0
-  return Math.round(pricePerDay * 30 * 0.8)
+// Tính giá theo tháng: sử dụng giá tháng có sẵn hoặc tính từ giá ngày
+const calculateMonthlyPrice = () => {
+  // Nếu có giá tháng riêng thì dùng
+  if (props.house.pricePerMonth) {
+    return props.house.pricePerMonth
+  }
+  // Nếu không thì tính từ giá ngày × 30
+  if (!props.house.pricePerDay) return 0
+  return Math.round(props.house.pricePerDay * 30)
 }
 
 const goToDetail = () => {

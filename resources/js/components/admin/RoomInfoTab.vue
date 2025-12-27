@@ -69,6 +69,60 @@
       <p v-if="errors.price_per_day" class="mt-1 text-sm text-red-600">{{ errors.price_per_day }}</p>
     </div>
 
+    <!-- Price per week -->
+    <div>
+      <label class="block text-sm font-medium text-gray-700 mb-2">
+        Giá thuê/tuần (VNĐ)
+      </label>
+      <div class="flex items-center gap-2">
+        <input
+          :value="modelValue.price_per_week"
+          @input="$emit('update:modelValue', { ...modelValue, price_per_week: $event.target.value })"
+          type="number"
+          step="1000"
+          min="0"
+          :class="[
+            'flex-1 px-4 py-2 border rounded-lg focus:ring-2 focus:outline-none transition-colors',
+            errors.price_per_week
+              ? 'border-red-500 focus:ring-red-500'
+              : 'border-gray-300 focus:ring-primary'
+          ]"
+          placeholder="Để trống nếu tính theo giá ngày × 7"
+        />
+        <span class="text-xs text-gray-500 font-medium whitespace-nowrap">
+          {{ formatPriceDisplay(modelValue.price_per_week) }}
+        </span>
+      </div>
+      <p v-if="errors.price_per_week" class="mt-1 text-sm text-red-600">{{ errors.price_per_week }}</p>
+    </div>
+
+    <!-- Price per month -->
+    <div>
+      <label class="block text-sm font-medium text-gray-700 mb-2">
+        Giá thuê/tháng (VNĐ)
+      </label>
+      <div class="flex items-center gap-2">
+        <input
+          :value="modelValue.price_per_month"
+          @input="$emit('update:modelValue', { ...modelValue, price_per_month: $event.target.value })"
+          type="number"
+          step="1000"
+          min="0"
+          :class="[
+            'flex-1 px-4 py-2 border rounded-lg focus:ring-2 focus:outline-none transition-colors',
+            errors.price_per_month
+              ? 'border-red-500 focus:ring-red-500'
+              : 'border-gray-300 focus:ring-primary'
+          ]"
+          placeholder="Để trống nếu tính theo giá ngày × 30"
+        />
+        <span class="text-xs text-gray-500 font-medium whitespace-nowrap">
+          {{ formatPriceDisplay(modelValue.price_per_month) }}
+        </span>
+      </div>
+      <p v-if="errors.price_per_month" class="mt-1 text-sm text-red-600">{{ errors.price_per_month }}</p>
+    </div>
+
     <!-- Area -->
     <div>
       <label class="block text-sm font-medium text-gray-700 mb-2">Diện tích (m²)</label>

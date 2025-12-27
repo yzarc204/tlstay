@@ -163,7 +163,7 @@
         <!-- Pricing & Details -->
         <div>
           <h2 class="text-lg font-semibold text-gray-900 mb-4">Giá và thông tin</h2>
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
             <!-- Price per day -->
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-2">
@@ -193,6 +193,68 @@
                 <ExclamationCircleIcon class="h-4 w-4" />
                 {{ errors.price_per_day }}
               </p>
+            </div>
+
+            <!-- Price per week -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">
+                Giá thuê/tuần (VNĐ)
+              </label>
+              <div class="flex items-center gap-2">
+                <input
+                  v-model.number="form.price_per_week"
+                  type="number"
+                  step="1000"
+                  min="0"
+                  :class="[
+                    'flex-1 px-4 py-2 border rounded-lg focus:ring-2 focus:outline-none transition-colors',
+                    errors.price_per_week
+                      ? 'border-red-500 focus:ring-red-500 focus:border-red-500'
+                      : 'border-gray-300 focus:ring-primary focus:border-transparent'
+                  ]"
+                  placeholder="3000000"
+                  @blur="validateField('price_per_week')"
+                />
+                <span class="text-xs text-gray-500 font-medium whitespace-nowrap">
+                  {{ formatPriceDisplay(form.price_per_week) }}
+                </span>
+              </div>
+              <p v-if="errors.price_per_week" class="mt-1 text-sm text-red-600 flex items-center gap-1">
+                <ExclamationCircleIcon class="h-4 w-4" />
+                {{ errors.price_per_week }}
+              </p>
+              <p class="mt-1 text-xs text-gray-500">Để trống nếu tính theo giá ngày × 7</p>
+            </div>
+
+            <!-- Price per month -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">
+                Giá thuê/tháng (VNĐ)
+              </label>
+              <div class="flex items-center gap-2">
+                <input
+                  v-model.number="form.price_per_month"
+                  type="number"
+                  step="1000"
+                  min="0"
+                  :class="[
+                    'flex-1 px-4 py-2 border rounded-lg focus:ring-2 focus:outline-none transition-colors',
+                    errors.price_per_month
+                      ? 'border-red-500 focus:ring-red-500 focus:border-red-500'
+                      : 'border-gray-300 focus:ring-primary focus:border-transparent'
+                  ]"
+                  placeholder="12000000"
+                  @blur="validateField('price_per_month')"
+                />
+                <span class="text-xs text-gray-500 font-medium whitespace-nowrap">
+                  {{ formatPriceDisplay(form.price_per_month) }}
+                </span>
+              </div>
+              <p v-if="errors.price_per_month" class="mt-1 text-sm text-red-600 flex items-center gap-1">
+                <ExclamationCircleIcon class="h-4 w-4" />
+                {{ errors.price_per_month }}
+              </p>
+              <p class="mt-1 text-xs text-gray-500">Để trống nếu tính theo giá ngày × 30</p>
             </div>
           </div>
         </div>
@@ -402,6 +464,8 @@ const form = ref({
   description: '',
   amenities: [],
   price_per_day: '',
+  price_per_week: '',
+  price_per_month: '',
   latitude: '',
   longitude: '',
 })
@@ -563,6 +627,12 @@ const handleSubmit = () => {
     formData.append('description', form.value.description)
   }
   formData.append('price_per_day', form.value.price_per_day)
+  if (form.value.price_per_week) {
+    formData.append('price_per_week', form.value.price_per_week)
+  }
+  if (form.value.price_per_month) {
+    formData.append('price_per_month', form.value.price_per_month)
+  }
   if (form.value.latitude) {
     formData.append('latitude', form.value.latitude)
   }
@@ -599,6 +669,8 @@ const handleSubmit = () => {
         description: '',
         amenities: [],
         price_per_day: '',
+        price_per_week: '',
+        price_per_month: '',
         latitude: '',
         longitude: '',
       }

@@ -34,6 +34,8 @@ class HomeController extends Controller
                     'address' => $house->address,
                     'image' => $house->image ?? (is_array($house->images) && count($house->images) > 0 ? $house->images[0] : 'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=800'),
                     'pricePerDay' => (float) $house->price_per_day,
+                    'pricePerWeek' => $house->price_per_week ? (float) $house->price_per_week : null,
+                    'pricePerMonth' => $house->price_per_month ? (float) $house->price_per_month : null,
                     'floors' => $house->floors,
                     'totalRooms' => $house->total_rooms_count ?? $house->total_rooms ?? 0,
                     'availableRooms' => $house->available_rooms_count ?? 0,

@@ -51,9 +51,15 @@ class RoomController extends Controller
             }
         }
 
-        // Inherit price from house if not provided or empty
+        // Inherit prices from house if not provided or empty
         if (!isset($validated['price_per_day']) || $validated['price_per_day'] === '' || $validated['price_per_day'] === null) {
             $validated['price_per_day'] = $house->price_per_day;
+        }
+        if (!isset($validated['price_per_week']) || $validated['price_per_week'] === '' || $validated['price_per_week'] === null) {
+            $validated['price_per_week'] = $house->price_per_week;
+        }
+        if (!isset($validated['price_per_month']) || $validated['price_per_month'] === '' || $validated['price_per_month'] === null) {
+            $validated['price_per_month'] = $house->price_per_month;
         }
 
         // Always inherit amenities from house when creating a new room

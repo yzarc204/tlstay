@@ -14,6 +14,8 @@ class Room extends Model
         'room_number',
         'floor',
         'price_per_day',
+        'price_per_week',
+        'price_per_month',
         'status',
         'area',
         'amenities',
@@ -28,6 +30,8 @@ class Room extends Model
     {
         return [
             'price_per_day' => 'decimal:2',
+            'price_per_week' => 'decimal:2',
+            'price_per_month' => 'decimal:2',
             'area' => 'decimal:2',
             'amenities' => 'array',
             'images' => 'array',

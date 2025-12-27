@@ -216,6 +216,8 @@ class HouseController extends Controller
                 'room_number' => $room->room_number,
                 'floor' => $room->floor,
                 'price_per_day' => (float) $room->price_per_day,
+                'price_per_week' => $room->price_per_week ? (float) $room->price_per_week : null,
+                'price_per_month' => $room->price_per_month ? (float) $room->price_per_month : null,
                 'area' => (float) ($room->area ?? 0),
                 'status' => $status, // 'available' or 'active'
                 'amenities' => $room->amenities ?? [],

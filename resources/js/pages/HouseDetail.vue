@@ -220,22 +220,32 @@
                   </div>
                   <div class="flex items-center justify-between p-3 bg-light rounded-lg">
                     <span class="text-gray-700">Theo tuần</span>
-                    <div class="text-right">
+                    <div class="text-right flex items-center gap-2">
                       <span class="font-bold text-secondary">{{
                         formatPrice(pricePerWeek)
                       }}</span>
-                      <span class="text-xs text-primary ml-2">(-10%)</span>
+                      <span 
+                        v-if="hasCustomWeekPrice && weekSavingsPercent > 0" 
+                        class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-secondary-100 text-secondary-800"
+                      >
+                        Tiết kiệm {{ weekSavingsPercent }}%
+                      </span>
                     </div>
                   </div>
                   <div
                     class="flex items-center justify-between p-3 bg-primary/10 rounded-lg border-2 border-primary"
                   >
                     <span class="text-gray-700">Theo tháng</span>
-                    <div class="text-right">
+                    <div class="text-right flex items-center gap-2">
                       <span class="font-bold text-primary text-lg">{{
                         formatPrice(pricePerMonth)
                       }}</span>
-                      <span class="text-xs text-primary ml-2">(-20%)</span>
+                      <span 
+                        v-if="hasCustomMonthPrice && monthSavingsPercent > 0" 
+                        class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-secondary-100 text-secondary-800"
+                      >
+                        Tiết kiệm {{ monthSavingsPercent }}%
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -381,33 +391,65 @@ watch(() => props.house, (newHouse) => {
   }
 }, { immediate: true })
 
-// Tính giá hiển thị cho các chu kỳ (dùng số ngày mặc định)
-const calculatePrice = (pricePerDay, days) => {
-  if (!pricePerDay || !days) return 0
-  
-  const basePrice = pricePerDay * days
-  let discount = 0
-  
-  // Áp dụng khuyến mãi dựa trên số ngày
-  if (days >= 30) {
-    // Thuê từ 30 ngày trở lên: giảm 20%
-    discount = 0.2
-  } else if (days >= 7) {
-    // Thuê từ 7 ngày trở lên: giảm 10%
-    discount = 0.1
-  }
-  
-  return Math.round(basePrice * (1 - discount))
-}
-
+// Tính giá tuần: sử dụng giá tuần có sẵn hoặc tính từ giá ngày × 7
 const pricePerWeek = computed(() => {
   if (!props.house) return 0
-  return calculatePrice(props.house.pricePerDay, 7)
+  // Nếu có giá tuần riêng thì dùng
+  if (props.house.pricePerWeek) {
+    return props.house.pricePerWeek
+  }
+  // Nếu không thì tính từ giá ngày × 7
+  return Math.round((props.house.pricePerDay || 0) * 7)
 })
 
+// Tính giá tháng: sử dụng giá tháng có sẵn hoặc tính từ giá ngày × 30
 const pricePerMonth = computed(() => {
   if (!props.house) return 0
-  return calculatePrice(props.house.pricePerDay, 30)
+  // Nếu có giá tháng riêng thì dùng
+  if (props.house.pricePerMonth) {
+    return props.house.pricePerMonth
+  }
+  // Nếu không thì tính từ giá ngày × 30
+  return Math.round((props.house.pricePerDay || 0) * 30)
+})
+
+// Kiểm tra xem có giá ưu đãi riêng không
+const hasCustomWeekPrice = computed(() => {
+  if (!props.house) return false
+  return !!props.house.pricePerWeek
+})
+
+const hasCustomMonthPrice = computed(() => {
+  if (!props.house) return false
+  return !!props.house.pricePerMonth
+})
+
+// Tính phần trăm tiết kiệm cho tuần
+// Công thức: ((Giá gốc - Giá ưu đãi) / Giá gốc) × 100
+// Giá gốc = giá ngày × 7
+// Chỉ trả về số dương (nếu giá ưu đãi > giá gốc thì không có tiết kiệm)
+const weekSavingsPercent = computed(() => {
+  if (!props.house || !hasCustomWeekPrice.value || !props.house.pricePerDay) return 0
+  const fullWeekPrice = props.house.pricePerDay * 7
+  if (fullWeekPrice <= 0) return 0
+  // Nếu giá ưu đãi >= giá gốc thì không có tiết kiệm
+  if (props.house.pricePerWeek >= fullWeekPrice) return 0
+  const savings = ((fullWeekPrice - props.house.pricePerWeek) / fullWeekPrice) * 100
+  return Math.max(0, Math.round(savings))
+})
+
+// Tính phần trăm tiết kiệm cho tháng
+// Công thức: ((Giá gốc - Giá ưu đãi) / Giá gốc) × 100
+// Giá gốc = giá ngày × 30
+// Chỉ trả về số dương (nếu giá ưu đãi > giá gốc thì không có tiết kiệm)
+const monthSavingsPercent = computed(() => {
+  if (!props.house || !hasCustomMonthPrice.value || !props.house.pricePerDay) return 0
+  const fullMonthPrice = props.house.pricePerDay * 30
+  if (fullMonthPrice <= 0) return 0
+  // Nếu giá ưu đãi >= giá gốc thì không có tiết kiệm
+  if (props.house.pricePerMonth >= fullMonthPrice) return 0
+  const savings = ((fullMonthPrice - props.house.pricePerMonth) / fullMonthPrice) * 100
+  return Math.max(0, Math.round(savings))
 })
 
 // Tạo URL cho Google Maps embed

@@ -49,6 +49,8 @@ class BookingController extends Controller
                     'roomNumber' => $room->room_number,
                     'floor' => $room->floor,
                     'pricePerDay' => (float) $room->price_per_day,
+                    'pricePerWeek' => $room->price_per_week ? (float) $room->price_per_week : null,
+                    'pricePerMonth' => $room->price_per_month ? (float) $room->price_per_month : null,
                     'area' => (float) ($room->area ?? 0),
                     'status' => $status,
                     'amenities' => $room->amenities ?? [],

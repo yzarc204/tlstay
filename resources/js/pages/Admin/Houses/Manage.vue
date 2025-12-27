@@ -88,6 +88,46 @@
 
                 <div>
                   <label class="block text-sm font-medium text-gray-700 mb-2">
+                    Giá thuê/tuần (VNĐ)
+                  </label>
+                  <div class="flex items-center gap-2">
+                    <input
+                      v-model.number="newRoomForm.price_per_week"
+                      type="number"
+                      step="1000"
+                      min="0"
+                      class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                      placeholder="3000000"
+                    />
+                    <span class="text-xs text-gray-500 font-medium whitespace-nowrap">
+                      {{ formatPriceDisplay(newRoomForm.price_per_week) }}
+                    </span>
+                  </div>
+                  <p class="mt-1 text-xs text-gray-500">Để trống nếu tính theo giá ngày × 7</p>
+                </div>
+
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-2">
+                    Giá thuê/tháng (VNĐ)
+                  </label>
+                  <div class="flex items-center gap-2">
+                    <input
+                      v-model.number="newRoomForm.price_per_month"
+                      type="number"
+                      step="1000"
+                      min="0"
+                      class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                      placeholder="12000000"
+                    />
+                    <span class="text-xs text-gray-500 font-medium whitespace-nowrap">
+                      {{ formatPriceDisplay(newRoomForm.price_per_month) }}
+                    </span>
+                  </div>
+                  <p class="mt-1 text-xs text-gray-500">Để trống nếu tính theo giá ngày × 30</p>
+                </div>
+
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-2">
                     Trạng thái <span class="text-red-500">*</span>
                   </label>
                   <select
@@ -196,6 +236,8 @@ const newRoomForm = ref({
   room_number: '',
   floor: 1,
   price_per_day: '',
+  price_per_week: '',
+  price_per_month: '',
   status: 'available',
   amenities: [],
   tenant_id: null,
@@ -228,6 +270,8 @@ const handleAddRoomClick = (floor) => {
   
   // Inherit price and amenities from house
   newRoomForm.value.price_per_day = props.house.price_per_day || ''
+  newRoomForm.value.price_per_week = props.house.price_per_week || ''
+  newRoomForm.value.price_per_month = props.house.price_per_month || ''
   newRoomForm.value.amenities = props.house.amenities ? [...props.house.amenities] : []
   
   showAddRoomModal.value = true
@@ -239,6 +283,8 @@ const closeAddRoomModal = () => {
     room_number: '',
     floor: 1,
     price_per_day: '',
+    price_per_week: '',
+    price_per_month: '',
     status: 'available',
     amenities: [],
     tenant_id: null,
