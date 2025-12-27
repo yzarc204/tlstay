@@ -150,29 +150,31 @@ class HouseSeeder extends Seeder
             $basePriceInK = $dayPriceArray[array_rand($dayPriceArray)];
             $basePrice = $basePriceInK * 1000;
 
-            // Lọc giá tuần: chỉ lấy các giá tuần sao cho giá tuần/7 >= giá ngày
-            // Để đảm bảo giá tuần/ngày >= giá ngày (tiết kiệm khi đặt nhiều)
-            $validWeekPrices = array_filter($weekPriceArray, function ($weekPrice) use ($basePriceInK) {
-                return ($weekPrice / 7) >= $basePriceInK;
+            // Lọc giá tuần: chỉ lấy các giá tuần sao cho giá tuần/7 < giá ngày
+            // Để đảm bảo giá tuần/ngày < giá ngày (tiết kiệm khi đặt nhiều)
+            $maxWeekPriceInK = $basePriceInK * 7; // Giá tuần tối đa = giá ngày * 7
+            $validWeekPrices = array_filter($weekPriceArray, function ($weekPrice) use ($maxWeekPriceInK) {
+                return ($weekPrice / 7) < ($maxWeekPriceInK / 7); // Tương đương với $weekPrice < $maxWeekPriceInK
             });
             $validWeekPrices = array_values($validWeekPrices);
             if (empty($validWeekPrices)) {
-                // Nếu không có giá tuần hợp lệ, chọn giá tuần nhỏ nhất thỏa mãn điều kiện
-                $minWeekPrice = ceil($basePriceInK * 7 / 100) * 100; // Làm tròn lên đến bội số 100
-                $validWeekPrices = [max($minWeekPrice, 1000)]; // Tối thiểu 1000k
+                // Nếu không có giá tuần hợp lệ, tính giá tuần với giảm giá 5% (giá ngày * 7 * 0.95)
+                $discountedWeekPrice = floor($basePriceInK * 7 * 0.95 / 100) * 100; // Làm tròn xuống đến bội số 100
+                $validWeekPrices = [max($discountedWeekPrice, 1000)]; // Tối thiểu 1000k
             }
             $pricePerWeek = $validWeekPrices[array_rand($validWeekPrices)] * 1000;
 
-            // Lọc giá tháng: chỉ lấy các giá tháng sao cho giá tháng/30 >= giá ngày
-            // Để đảm bảo giá tháng/ngày >= giá ngày (tiết kiệm khi đặt nhiều)
-            $validMonthPrices = array_filter($monthPriceArray, function ($monthPrice) use ($basePriceInK) {
-                return ($monthPrice / 30) >= $basePriceInK;
+            // Lọc giá tháng: chỉ lấy các giá tháng sao cho giá tháng/30 < giá ngày
+            // Để đảm bảo giá tháng/ngày < giá ngày (tiết kiệm khi đặt nhiều)
+            $maxMonthPriceInK = $basePriceInK * 30; // Giá tháng tối đa = giá ngày * 30
+            $validMonthPrices = array_filter($monthPriceArray, function ($monthPrice) use ($maxMonthPriceInK) {
+                return ($monthPrice / 30) < ($maxMonthPriceInK / 30); // Tương đương với $monthPrice < $maxMonthPriceInK
             });
             $validMonthPrices = array_values($validMonthPrices);
             if (empty($validMonthPrices)) {
-                // Nếu không có giá tháng hợp lệ, chọn giá tháng nhỏ nhất thỏa mãn điều kiện
-                $minMonthPrice = ceil($basePriceInK * 30 / 200) * 200; // Làm tròn lên đến bội số 200
-                $validMonthPrices = [max($minMonthPrice, 3000)]; // Tối thiểu 3000k
+                // Nếu không có giá tháng hợp lệ, tính giá tháng với giảm giá 5% (giá ngày * 30 * 0.95)
+                $discountedMonthPrice = floor($basePriceInK * 30 * 0.95 / 200) * 200; // Làm tròn xuống đến bội số 200
+                $validMonthPrices = [max($discountedMonthPrice, 3000)]; // Tối thiểu 3000k
             }
             $pricePerMonth = $validMonthPrices[array_rand($validMonthPrices)] * 1000;
 
@@ -244,25 +246,31 @@ class HouseSeeder extends Seeder
                     $roomPriceInK = $roomPriceArray[array_rand($roomPriceArray)];
                     $roomPrice = $roomPriceInK * 1000;
 
-                    // Lọc giá tuần cho phòng: chỉ lấy các giá tuần sao cho giá tuần/7 >= giá phòng ngày
-                    $validRoomWeekPrices = array_filter($weekPriceArray, function ($weekPrice) use ($roomPriceInK) {
-                        return ($weekPrice / 7) >= $roomPriceInK;
+                    // Lọc giá tuần cho phòng: chỉ lấy các giá tuần sao cho giá tuần/7 < giá phòng ngày
+                    // Để đảm bảo giá tuần/ngày < giá phòng ngày (tiết kiệm khi đặt nhiều)
+                    $maxRoomWeekPriceInK = $roomPriceInK * 7; // Giá tuần tối đa = giá phòng ngày * 7
+                    $validRoomWeekPrices = array_filter($weekPriceArray, function ($weekPrice) use ($maxRoomWeekPriceInK) {
+                        return ($weekPrice / 7) < ($maxRoomWeekPriceInK / 7); // Tương đương với $weekPrice < $maxRoomWeekPriceInK
                     });
                     $validRoomWeekPrices = array_values($validRoomWeekPrices);
                     if (empty($validRoomWeekPrices)) {
-                        $minRoomWeekPrice = ceil($roomPriceInK * 7 / 100) * 100;
-                        $validRoomWeekPrices = [max($minRoomWeekPrice, 1000)];
+                        // Nếu không có giá tuần hợp lệ, tính giá tuần với giảm giá 5% (giá phòng ngày * 7 * 0.95)
+                        $discountedRoomWeekPrice = floor($roomPriceInK * 7 * 0.95 / 100) * 100;
+                        $validRoomWeekPrices = [max($discountedRoomWeekPrice, 1000)];
                     }
                     $roomPricePerWeek = $validRoomWeekPrices[array_rand($validRoomWeekPrices)] * 1000;
 
-                    // Lọc giá tháng cho phòng: chỉ lấy các giá tháng sao cho giá tháng/30 >= giá phòng ngày
-                    $validRoomMonthPrices = array_filter($monthPriceArray, function ($monthPrice) use ($roomPriceInK) {
-                        return ($monthPrice / 30) >= $roomPriceInK;
+                    // Lọc giá tháng cho phòng: chỉ lấy các giá tháng sao cho giá tháng/30 < giá phòng ngày
+                    // Để đảm bảo giá tháng/ngày < giá phòng ngày (tiết kiệm khi đặt nhiều)
+                    $maxRoomMonthPriceInK = $roomPriceInK * 30; // Giá tháng tối đa = giá phòng ngày * 30
+                    $validRoomMonthPrices = array_filter($monthPriceArray, function ($monthPrice) use ($maxRoomMonthPriceInK) {
+                        return ($monthPrice / 30) < ($maxRoomMonthPriceInK / 30); // Tương đương với $monthPrice < $maxRoomMonthPriceInK
                     });
                     $validRoomMonthPrices = array_values($validRoomMonthPrices);
                     if (empty($validRoomMonthPrices)) {
-                        $minRoomMonthPrice = ceil($roomPriceInK * 30 / 200) * 200;
-                        $validRoomMonthPrices = [max($minRoomMonthPrice, 3000)];
+                        // Nếu không có giá tháng hợp lệ, tính giá tháng với giảm giá 5% (giá phòng ngày * 30 * 0.95)
+                        $discountedRoomMonthPrice = floor($roomPriceInK * 30 * 0.95 / 200) * 200;
+                        $validRoomMonthPrices = [max($discountedRoomMonthPrice, 3000)];
                     }
                     $roomPricePerMonth = $validRoomMonthPrices[array_rand($validRoomMonthPrices)] * 1000;
 
