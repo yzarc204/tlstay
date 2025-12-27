@@ -17,15 +17,15 @@
         >
           <div class="absolute inset-0 w-full h-full bg-black/40"></div>
         </div>
-        <div class="container mx-auto px-4 py-12 md:py-16 relative z-10 min-h-[500px] flex items-center">
-          <div class="max-w-4xl mx-auto text-center mb-6 md:mb-8">
+        <div class="w-full px-2 md:px-3 py-12 md:py-16 relative z-10 min-h-[500px] flex items-center">
+          <div class="w-[50%] mx-auto text-center">
             <p class="text-sm md:text-base mb-2 md:mb-3 text-white/90">
               Hiện có mặt trên toàn thế giới, và là cộng đồng bất động sản lớn nhất tại Việt Nam năm 2024
             </p>
-            <h1 class="text-4xl md:text-6xl font-bold mb-3 md:mb-4 leading-tight">
+            <h1 class="text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-bold mb-3 md:mb-4 leading-tight">
               Khám phá những căn phòng trọ tốt nhất tại Việt Nam
             </h1>
-            <p class="text-lg mb-0 text-white/90 max-w-2xl mx-auto">
+            <p class="text-base md:text-lg mb-0 text-white/90">
               Được hình thành với mục tiêu mang đến trải nghiệm tìm kiếm và thuê phòng trọ tốt nhất.
               TL STAY đã tập hợp những chuyên gia hàng đầu trong lĩnh vực bất động sản và công nghệ.
             </p>
@@ -57,10 +57,10 @@
           <Link
             v-if="slider.show_text && slider.link"
             :href="slider.link"
-            class="block container mx-auto px-4 py-12 md:py-16 relative z-10 w-full h-full flex items-center"
+            class="block w-full px-2 md:px-3 py-12 md:py-16 relative z-10 h-full flex items-center"
           >
             <div
-              class="max-w-6xl mx-auto w-full"
+              class="w-[50%] mx-auto"
               :class="{
                 'text-left': slider.text_position === 'left',
                 'text-center': slider.text_position === 'center',
@@ -72,21 +72,21 @@
                 {{ slider.text_line1 }}
               </p>
               <!-- Dòng 2 (chữ to) -->
-              <h1 v-if="slider.text_line2" class="text-4xl md:text-6xl font-bold mb-3 md:mb-4 leading-tight">
+              <h1 v-if="slider.text_line2" class="text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-bold mb-3 md:mb-4 leading-tight">
                 {{ slider.text_line2 }}
               </h1>
               <!-- Dòng 3 (chữ nhỏ) -->
-              <p v-if="slider.text_line3" class="text-lg mb-0 text-white/90" :class="slider.text_position === 'center' ? 'max-w-4xl mx-auto' : ''">
+              <p v-if="slider.text_line3" class="text-base md:text-lg mb-0 text-white/90">
                 {{ slider.text_line3 }}
               </p>
             </div>
           </Link>
           <div
             v-else-if="slider.show_text"
-            class="container mx-auto px-4 py-12 md:py-16 relative z-10 w-full h-full flex items-center"
+            class="w-full px-2 md:px-3 py-12 md:py-16 relative z-10 h-full flex items-center"
           >
             <div
-              class="max-w-6xl mx-auto w-full"
+              class="w-[50%] mx-auto"
               :class="{
                 'text-left': slider.text_position === 'left',
                 'text-center': slider.text_position === 'center',
@@ -98,11 +98,11 @@
                 {{ slider.text_line1 }}
               </p>
               <!-- Dòng 2 (chữ to) -->
-              <h1 v-if="slider.text_line2" class="text-4xl md:text-6xl font-bold mb-3 md:mb-4 leading-tight">
+              <h1 v-if="slider.text_line2" class="text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-bold mb-3 md:mb-4 leading-tight">
                 {{ slider.text_line2 }}
               </h1>
               <!-- Dòng 3 (chữ nhỏ) -->
-              <p v-if="slider.text_line3" class="text-lg mb-0 text-white/90" :class="slider.text_position === 'center' ? 'max-w-4xl mx-auto' : ''">
+              <p v-if="slider.text_line3" class="text-base md:text-lg mb-0 text-white/90">
                 {{ slider.text_line3 }}
               </p>
             </div>
