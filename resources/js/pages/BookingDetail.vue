@@ -328,25 +328,6 @@
               <div class="pt-6 border-t">
                 <h4 class="font-semibold text-gray-800 mb-3">Liên hệ hỗ trợ</h4>
                 
-                <!-- House Contact (if available) -->
-                <div v-if="booking.house.contact_phone || booking.house.contact_email" class="mb-4">
-                  <p class="text-xs text-gray-500 mb-2">Thông tin nhà trọ</p>
-                  <div class="space-y-2 text-sm">
-                    <p v-if="booking.house.contact_phone" class="flex items-center text-gray-600">
-                      <PhoneIcon class="w-4 h-4 mr-2 text-primary" />
-                      <a :href="`tel:${booking.house.contact_phone}`" class="hover:text-primary">
-                        {{ booking.house.contact_phone }}
-                      </a>
-                    </p>
-                    <p v-if="booking.house.contact_email" class="flex items-center text-gray-600">
-                      <EnvelopeIcon class="w-4 h-4 mr-2 text-primary" />
-                      <a :href="`mailto:${booking.house.contact_email}`" class="hover:text-primary break-all">
-                        {{ booking.house.contact_email }}
-                      </a>
-                    </p>
-                  </div>
-                </div>
-
                 <!-- Owner Contact -->
                 <div v-if="booking.owner" class="bg-primary-50 rounded-lg p-4">
                   <p class="text-xs font-semibold text-primary-700 mb-2 uppercase">Quản lý nhà trọ</p>

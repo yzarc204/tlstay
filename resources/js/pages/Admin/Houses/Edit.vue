@@ -197,54 +197,6 @@
           </div>
         </div>
 
-        <!-- Contact Information -->
-        <div>
-          <h2 class="text-lg font-semibold text-gray-900 mb-4">Thông tin liên hệ</h2>
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <!-- Contact Phone -->
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">Số điện thoại</label>
-              <input
-                v-model="form.contact_phone"
-                type="tel"
-                :class="[
-                  'w-full px-4 py-2 border rounded-lg focus:ring-2 focus:outline-none transition-colors',
-                  errors.contact_phone
-                    ? 'border-red-500 focus:ring-red-500 focus:border-red-500'
-                    : 'border-gray-300 focus:ring-primary focus:border-transparent'
-                ]"
-                placeholder="0123456789"
-                @blur="validateField('contact_phone')"
-              />
-              <p v-if="errors.contact_phone" class="mt-1 text-sm text-red-600 flex items-center gap-1">
-                <ExclamationCircleIcon class="h-4 w-4" />
-                {{ errors.contact_phone }}
-              </p>
-            </div>
-
-            <!-- Contact Email -->
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">Email</label>
-              <input
-                v-model="form.contact_email"
-                type="email"
-                :class="[
-                  'w-full px-4 py-2 border rounded-lg focus:ring-2 focus:outline-none transition-colors',
-                  errors.contact_email
-                    ? 'border-red-500 focus:ring-red-500 focus:border-red-500'
-                    : 'border-gray-300 focus:ring-primary focus:border-transparent'
-                ]"
-                placeholder="contact@example.com"
-                @blur="validateField('contact_email')"
-              />
-              <p v-if="errors.contact_email" class="mt-1 text-sm text-red-600 flex items-center gap-1">
-                <ExclamationCircleIcon class="h-4 w-4" />
-                {{ errors.contact_email }}
-              </p>
-            </div>
-          </div>
-        </div>
-
         <!-- Amenities -->
         <div>
           <h2 class="text-lg font-semibold text-gray-900 mb-4">Tiện nghi</h2>
@@ -626,8 +578,6 @@ onMounted(() => {
     price_per_day: props.house.price_per_day || '',
     latitude: props.house.latitude || '',
     longitude: props.house.longitude || '',
-    contact_phone: props.house.contact_phone || '',
-    contact_email: props.house.contact_email || '',
   }
   
   // Load existing images - filter out empty/null values
@@ -805,13 +755,6 @@ const validateForm = () => {
     newErrors.longitude = 'Kinh độ phải trong khoảng -180 đến 180'
   }
   
-  if (form.value.contact_phone && !/^(0|\+84)[1-9][0-9]{8,9}$/.test(form.value.contact_phone.replace(/\s+/g, ''))) {
-    newErrors.contact_phone = 'Số điện thoại không hợp lệ'
-  }
-  
-  if (form.value.contact_email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.value.contact_email)) {
-    newErrors.contact_email = 'Email không hợp lệ'
-  }
   
   errors.value = newErrors
   return Object.keys(newErrors).length === 0
@@ -844,12 +787,6 @@ const handleSubmit = () => {
   }
   if (form.value.longitude) {
     formData.append('longitude', form.value.longitude)
-  }
-  if (form.value.contact_phone) {
-    formData.append('contact_phone', form.value.contact_phone)
-  }
-  if (form.value.contact_email) {
-    formData.append('contact_email', form.value.contact_email)
   }
 
   // Append amenities

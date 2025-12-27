@@ -18,7 +18,7 @@ class HouseSeeder extends Seeder
     {
         // Lấy các đường từ database
         $streets = Address::where('type', 'street')->with('parent')->get();
-        
+
         if ($streets->isEmpty()) {
             $this->command->warn('Không có địa chỉ đường nào trong database. Vui lòng chạy AddressSeeder trước.');
             return;
@@ -26,7 +26,7 @@ class HouseSeeder extends Seeder
 
         // Lấy hoặc tạo owner (manager)
         $owner = User::where('role', 'manager')->first();
-        
+
         if (!$owner) {
             // Tạo owner mới nếu chưa có
             $owner = User::create([
@@ -42,23 +42,6 @@ class HouseSeeder extends Seeder
         $customers = User::where('role', 'customer')
             ->whereNotIn('email', ['customer@tlstay.com', 'manager@tlstay.com'])
             ->get();
-        
-        if ($customers->isEmpty()) {
-            $this->command->warn('Không có customer nào trong database. Vui lòng chạy UserSeeder trước.');
-            // Tạo một vài customer mẫu nếu chưa có
-            for ($i = 0; $i < 20; $i++) {
-                User::create([
-                    'name' => 'Khách hàng ' . ($i + 1),
-                    'email' => 'tenant' . ($i + 1) . '@tlstay.com',
-                    'password' => bcrypt('123456'),
-                    'role' => 'customer',
-                    'phone' => '0' . rand(100000000, 999999999),
-                ]);
-            }
-            $customers = User::where('role', 'customer')
-                ->whereNotIn('email', ['customer@tlstay.com', 'manager@tlstay.com'])
-                ->get();
-        }
 
         // Danh sách tiện nghi
         $amenitiesList = [
@@ -92,12 +75,15 @@ class HouseSeeder extends Seeder
 
             // Số phòng từ 10-15
             $totalRooms = rand(10, 15);
-            
+
             // Số tầng từ 2-4 (tùy số phòng)
             $floors = min(4, max(2, ceil($totalRooms / 5)));
 
-            // Giá cơ bản từ 105k - 250k/ngày (cho phòng) - số chẵn
-            $basePrice = rand(105, 250) * 1000; // Random số chẵn từ 105k đến 250k
+            // Tạo mảng giá từ 100 đến 300 (bước 10)
+            $priceArray = range(100, 300, 10);
+
+            // Giá cơ bản từ 100k - 300k/ngày (cho phòng) - random từ mảng
+            $basePrice = $priceArray[array_rand($priceArray)] * 1000;
 
             // Tạo nhà trọ
             $house = House::create([
@@ -112,18 +98,16 @@ class HouseSeeder extends Seeder
                 'price_per_day' => $basePrice,
                 'floors' => $floors,
                 'total_rooms' => $totalRooms,
-                'rating' => round(rand(35, 50) / 10, 1), // 3.5 - 5.0
+                'rating' => round(rand(40, 50) / 10, 1), // 3.5 - 5.0
                 'reviews' => rand(5, 50),
                 'latitude' => 21.0 + (rand(0, 1000) / 10000), // Khoảng Hà Nội
                 'longitude' => 105.7 + (rand(0, 1000) / 10000),
-                'contact_phone' => '0' . rand(100000000, 999999999),
-                'contact_email' => 'house' . ($i + 1) . '@tlstay.com',
             ]);
 
             // Tạo các phòng và chia vào các tầng
             $roomsPerFloor = [];
             $remainingRooms = $totalRooms;
-            
+
             // Phân bổ phòng vào các tầng
             for ($floor = 1; $floor <= $floors; $floor++) {
                 if ($floor === $floors) {
@@ -142,11 +126,11 @@ class HouseSeeder extends Seeder
                 for ($j = 1; $j <= $roomCount; $j++) {
                     // Tên phòng theo format: {tầng}{số thứ tự trong tầng}
                     // Ví dụ: Tầng 1 -> 101, 102, 103... | Tầng 2 -> 201, 202, 203...
-                    $roomNumber = (string)($floor * 100 + $j);
-                    
+                    $roomNumber = (string) ($floor * 100 + $j);
+
                     // Giá phòng trong khoảng 150k - 250k/ngày - số chẵn
                     $roomPrice = rand(150, 250) * 1000; // Random số chẵn từ 150k đến 250k
-                    
+
                     // Diện tích từ 15-30 m²
                     $area = rand(15, 30);
 
@@ -178,15 +162,15 @@ class HouseSeeder extends Seeder
                     // 30% khả năng phòng có người thuê
                     if (rand(0, 10) < 3) {
                         $tenant = $customers->random();
-                        
+
                         // Tạo ngày thuê: có thể đã bắt đầu hoặc sắp bắt đầu
                         $daysAgo = rand(0, 60); // Có thể đã thuê từ 0-60 ngày trước
                         $rentalStartDate = now()->subDays($daysAgo)->format('Y-m-d');
-                        
+
                         // Thời gian thuê: từ 30-180 ngày
                         $rentalDays = rand(30, 180);
                         $rentalEndDate = now()->addDays($rentalDays)->format('Y-m-d');
-                        
+
                         // Cập nhật thông tin người thuê vào phòng
                         // Booking sẽ được tạo trong BookingSeeder
                         $room->update([

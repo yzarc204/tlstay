@@ -25,8 +25,6 @@ class House extends Model
         'reviews',
         'latitude',
         'longitude',
-        'contact_phone',
-        'contact_email',
         'ward_id',
         'street_id',
     ];

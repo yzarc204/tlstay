@@ -42,8 +42,6 @@ class StoreHouseRequest extends FormRequest
             'total_rooms' => ['nullable', 'integer', 'min:0'],
             'latitude' => ['nullable', 'numeric', 'between:-90,90'],
             'longitude' => ['nullable', 'numeric', 'between:-180,180'],
-            'contact_phone' => ['nullable', 'string', 'regex:/^(0|\+84)[1-9][0-9]{8,9}$/'],
-            'contact_email' => ['nullable', 'email', 'max:255'],
         ];
     }
 
@@ -77,8 +75,6 @@ class StoreHouseRequest extends FormRequest
             'latitude.between' => 'Vĩ độ phải trong khoảng -90 đến 90',
             'longitude.numeric' => 'Kinh độ phải là số',
             'longitude.between' => 'Kinh độ phải trong khoảng -180 đến 180',
-            'contact_phone.regex' => 'Số điện thoại không hợp lệ',
-            'contact_email.email' => 'Email không hợp lệ',
         ];
     }
 }

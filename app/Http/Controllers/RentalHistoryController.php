@@ -177,8 +177,6 @@ class RentalHistoryController extends Controller
                 'id' => $booking->house->id,
                 'name' => $booking->house->name,
                 'address' => $booking->house->address,
-                'contact_phone' => $booking->house->contact_phone,
-                'contact_email' => $booking->house->contact_email,
                 'latitude' => $booking->house->latitude ? (float) $booking->house->latitude : null,
                 'longitude' => $booking->house->longitude ? (float) $booking->house->longitude : null,
             ],

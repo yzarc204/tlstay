@@ -226,8 +226,12 @@ class HouseController extends Controller
             'amenities' => $house->amenities ?? [],
             'latitude' => $house->latitude ? (float) $house->latitude : null,
             'longitude' => $house->longitude ? (float) $house->longitude : null,
-            'contactPhone' => $house->contact_phone,
-            'contactEmail' => $house->contact_email,
+            'owner' => $house->owner ? [
+                'id' => $house->owner->id,
+                'name' => $house->owner->name,
+                'email' => $house->owner->email,
+                'phone' => $house->owner->phone,
+            ] : null,
         ];
 
         return Inertia::render('HouseDetail', [

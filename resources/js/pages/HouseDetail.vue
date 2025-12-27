@@ -263,16 +263,21 @@
               </p>
 
               <!-- Contact Info -->
-              <div class="mt-6 pt-6 border-t">
+              <div v-if="house.owner" class="mt-6 pt-6 border-t">
                 <h3 class="font-semibold text-gray-800 mb-3">Thông tin liên hệ</h3>
                 <div class="space-y-2 text-sm text-gray-600">
-                  <p v-if="contactPhone" class="flex items-center">
+                  <p class="font-semibold text-gray-900 mb-2">{{ house.owner.name }}</p>
+                  <p v-if="house.owner.phone" class="flex items-center">
                     <PhoneIcon class="w-4 h-4 mr-2" />
-                    {{ contactPhone }}
+                    <a :href="`tel:${house.owner.phone}`" class="hover:text-primary">
+                      {{ house.owner.phone }}
+                    </a>
                   </p>
-                  <p v-if="contactEmail" class="flex items-center">
+                  <p v-if="house.owner.email" class="flex items-center">
                     <EnvelopeIcon class="w-4 h-4 mr-2" />
-                    {{ contactEmail }}
+                    <a :href="`mailto:${house.owner.email}`" class="hover:text-primary break-all">
+                      {{ house.owner.email }}
+                    </a>
                   </p>
                 </div>
               </div>
@@ -295,15 +300,6 @@ import ReviewForm from '@/components/reviews/ReviewForm.vue'
 import ReviewItem from '@/components/reviews/ReviewItem.vue'
 
 const page = usePage()
-
-// Get contact info from site settings
-const contactPhone = computed(() => {
-  return page.props?.siteSettings?.contact_phone || '+84 123 456 789'
-})
-
-const contactEmail = computed(() => {
-  return page.props?.siteSettings?.contact_email || 'contact@tlstay.com'
-})
 import {
   ChevronLeftIcon,
   ChevronRightIcon,
