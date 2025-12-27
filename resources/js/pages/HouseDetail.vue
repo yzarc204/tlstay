@@ -451,11 +451,6 @@
                                     Đặt phòng ngay
                                 </button>
 
-                                <button class="w-full btn-outline">
-                                    <PhoneIcon class="w-5 h-5 inline mr-2" />
-                                    Liên hệ
-                                </button>
-
                                 <p
                                     v-if="!isAuthenticated"
                                     class="text-sm text-center text-gray-500 mt-4"
