@@ -36,11 +36,12 @@ class BookingController extends Controller
             ->get()
             ->map(function ($room) use ($startDate, $endDate, $roomAvailabilityService) {
                 // If dates are provided, check status for that date range
-                // Otherwise, use current effective status
+                // Otherwise, default to 'available' (all rooms show as empty)
                 if ($startDate && $endDate) {
                     $status = $roomAvailabilityService->getStatusForDates($room, $startDate, $endDate);
                 } else {
-                    $status = $roomAvailabilityService->getEffectiveStatus($room);
+                    // Mặc định tất cả phòng ở trạng thái trống khi không có ngày
+                    $status = 'available';
                 }
                 
                 return [
