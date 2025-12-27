@@ -42,13 +42,11 @@
                 <!-- Content -->
                 <div
                     v-if="!errorMessage && house"
-                    class="grid lg:grid-cols-3 gap-8"
+                    class="grid lg:grid-cols-3 gap-8 items-stretch"
                 >
                     <!-- Floor Plan -->
-                    <div class="lg:col-span-2">
-                        <div
-                            class="card p-6 max-h-[calc(100vh-8rem)] flex flex-col"
-                        >
+                    <div class="lg:col-span-2 h-full">
+                        <div class="card p-6 flex flex-col h-full">
                             <div
                                 class="flex items-center justify-between mb-6 flex-shrink-0"
                             >
@@ -102,7 +100,7 @@
                                             class="flex items-center space-x-2"
                                         >
                                             <div
-                                                class="w-4 h-4 bg-gray-400 rounded"
+                                                class="w-4 h-4 bg-red-400 rounded"
                                             ></div>
                                             <span class="text-sm text-gray-600"
                                                 >Đã thuê</span
@@ -112,10 +110,10 @@
                                             class="flex items-center space-x-2"
                                         >
                                             <div
-                                                class="w-4 h-4 bg-secondary-50 border-2 border-secondary rounded relative"
+                                                class="w-4 h-4 bg-green-400 rounded relative"
                                             >
                                                 <CheckIcon
-                                                    class="w-2.5 h-2.5 text-secondary absolute top-0.5 left-0.5"
+                                                    class="w-2.5 h-2.5 text-white absolute top-0.5 left-0.5"
                                                     stroke-width="3"
                                                 />
                                             </div>
@@ -202,24 +200,84 @@
                         </div>
                     </div>
 
-                    <!-- Booking Summary -->
-                    <div class="lg:col-span-1">
-                        <div
-                            class="card p-6 sticky top-24 max-h-[calc(100vh-8rem)] overflow-y-auto"
-                        >
-                            <h2 class="text-xl font-bold text-secondary mb-6">
-                                Thông tin đặt phòng
-                            </h2>
-
+                    <!-- Right Panel -->
+                    <div class="lg:col-span-1 space-y-6 sticky top-24 h-full">
+                        <!-- Selected Room Section -->
+                        <div class="card p-6">
                             <!-- Selected Room -->
-                            <div
-                                v-if="selectedRoom"
-                                class="mb-6 bg-primary-50 rounded-lg border-2 border-primary overflow-hidden"
-                            >
+                            <div v-if="selectedRoom" class="space-y-4">
+                                <!-- Room Header -->
+                                <div>
+                                    <div
+                                        class="flex items-center justify-between mb-1"
+                                    >
+                                        <h3
+                                            class="text-lg font-semibold text-primary"
+                                        >
+                                            Phòng
+                                            {{ selectedRoom.roomNumber }} - Tầng
+                                            {{ selectedRoom.floor }}
+                                        </h3>
+                                        <button
+                                            @click="
+                                                () => {
+                                                    selectedRoom = null;
+                                                    bookingForm.room_id = null;
+                                                }
+                                            "
+                                            class="text-gray-500 hover:text-red-500 transition-colors"
+                                        >
+                                            <XMarkIcon class="w-5 h-5" />
+                                        </button>
+                                    </div>
+                                    <p class="text-sm text-gray-600">
+                                        Diện tích: {{ selectedRoom.area }}m²
+                                    </p>
+                                </div>
+
+                                <!-- Room Amenities -->
+                                <div
+                                    v-if="roomAmenities.length > 0"
+                                    class="pt-2"
+                                >
+                                    <div
+                                        class="flex flex-wrap items-center gap-2 text-sm"
+                                    >
+                                        <template
+                                            v-for="(
+                                                amenity, index
+                                            ) in roomAmenities"
+                                            :key="amenity"
+                                        >
+                                            <div
+                                                class="flex items-center gap-1.5"
+                                            >
+                                                <component
+                                                    :is="
+                                                        getAmenityIcon(amenity)
+                                                    "
+                                                    class="w-4 h-4 text-primary flex-shrink-0"
+                                                />
+                                                <span class="text-gray-700">{{
+                                                    getAmenityName(amenity)
+                                                }}</span>
+                                            </div>
+                                            <span
+                                                v-if="
+                                                    index <
+                                                    roomAmenities.length - 1
+                                                "
+                                                class="text-gray-400"
+                                                >,</span
+                                            >
+                                        </template>
+                                    </div>
+                                </div>
+
                                 <!-- Room Images - Grid Thumbnails -->
-                                <div v-if="roomImages.length > 0" class="p-4">
+                                <div v-if="roomImages.length > 0">
                                     <h3
-                                        class="text-sm font-semibold text-gray-700 mb-3"
+                                        class="text-sm font-semibold text-gray-700 mb-2"
                                     >
                                         Ảnh phòng
                                     </h3>
@@ -228,7 +286,7 @@
                                             v-for="(img, index) in roomImages"
                                             :key="index"
                                             @click="openImageSlider(index)"
-                                            class="relative aspect-square rounded-lg overflow-hidden border-2 border-transparent hover:border-primary transition-all group"
+                                            class="relative aspect-square rounded-lg overflow-hidden border-2 border-gray-200 hover:border-primary transition-all group"
                                         >
                                             <img
                                                 :src="img"
@@ -242,14 +300,14 @@
                                     </div>
                                 </div>
                                 <!-- Default image if no room images -->
-                                <div v-else class="p-4">
+                                <div v-else>
                                     <h3
-                                        class="text-sm font-semibold text-gray-700 mb-3"
+                                        class="text-sm font-semibold text-gray-700 mb-2"
                                     >
                                         Ảnh phòng
                                     </h3>
                                     <div
-                                        class="relative aspect-square rounded-lg bg-gray-200 overflow-hidden"
+                                        class="relative aspect-video rounded-lg bg-gray-200 overflow-hidden"
                                     >
                                         <img
                                             :src="
@@ -269,45 +327,22 @@
                                     </div>
                                 </div>
 
-                                <!-- Room Info -->
-                                <div class="p-4 border-t border-primary/20">
-                                    <div
-                                        class="flex items-center justify-between mb-2"
+                                <!-- Room Pricing -->
+                                <div class="pt-4 border-t border-gray-200">
+                                    <h3
+                                        class="text-sm font-semibold text-gray-700 mb-3"
                                     >
-                                        <span class="font-semibold text-primary"
-                                            >Phòng
-                                            {{ selectedRoom.roomNumber }} - Tầng
-                                            {{ selectedRoom.floor }}</span
-                                        >
-                                        <button
-                                            @click="
-                                                () => {
-                                                    selectedRoom = null;
-                                                    bookingForm.room_id = null;
-                                                }
-                                            "
-                                            class="text-gray-500 hover:text-secondary"
-                                        >
-                                            <XMarkIcon class="w-5 h-5" />
-                                        </button>
-                                    </div>
-                                    <p class="text-sm text-gray-600">
-                                        Diện tích: {{ selectedRoom.area }}m²
-                                    </p>
-                                    <div class="mt-3 space-y-2">
-                                        <p
-                                            class="text-sm font-semibold text-gray-700 mb-2"
-                                        >
-                                            Giá thuê:
-                                        </p>
+                                        Giá thuê
+                                    </h3>
+                                    <div class="space-y-2">
                                         <div
-                                            class="flex items-center justify-between text-sm"
+                                            class="flex items-center justify-between text-sm py-2 border-b border-gray-100"
                                         >
                                             <span class="text-gray-600"
                                                 >Theo ngày:</span
                                             >
                                             <span
-                                                class="font-medium text-gray-900"
+                                                class="font-semibold text-gray-900"
                                             >
                                                 {{
                                                     formatPrice(
@@ -317,13 +352,13 @@
                                             </span>
                                         </div>
                                         <div
-                                            class="flex items-center justify-between text-sm"
+                                            class="flex items-center justify-between text-sm py-2 border-b border-gray-100"
                                         >
                                             <span class="text-gray-600"
                                                 >Theo tuần:</span
                                             >
                                             <span
-                                                class="font-medium text-gray-900"
+                                                class="font-semibold text-gray-900"
                                             >
                                                 {{
                                                     formatPrice(
@@ -335,13 +370,13 @@
                                             </span>
                                         </div>
                                         <div
-                                            class="flex items-center justify-between text-sm"
+                                            class="flex items-center justify-between text-sm py-2"
                                         >
                                             <span class="text-gray-600"
                                                 >Theo tháng:</span
                                             >
                                             <span
-                                                class="font-medium text-gray-900"
+                                                class="font-semibold text-primary text-base"
                                             >
                                                 {{
                                                     formatPrice(
@@ -356,12 +391,10 @@
                                 </div>
                             </div>
 
-                            <div
-                                v-else
-                                class="mb-6 p-4 bg-gray-50 rounded-lg text-center text-gray-500"
-                            >
+                            <!-- Empty State -->
+                            <div v-else class="py-12 text-center text-gray-500">
                                 <svg
-                                    class="w-12 h-12 mx-auto mb-2 text-gray-400"
+                                    class="w-16 h-16 mx-auto mb-3 text-gray-400"
                                     fill="none"
                                     stroke="currentColor"
                                     viewBox="0 0 24 24"
@@ -373,8 +406,20 @@
                                         d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
                                     />
                                 </svg>
-                                <p class="text-sm">Vui lòng chọn phòng</p>
+                                <p class="text-sm font-medium">
+                                    Vui lòng chọn phòng
+                                </p>
+                                <p class="text-xs text-gray-400 mt-1">
+                                    Chọn một phòng từ sơ đồ bên trái
+                                </p>
                             </div>
+                        </div>
+
+                        <!-- Booking Form Section -->
+                        <div class="card p-6">
+                            <h2 class="text-xl font-bold text-secondary mb-6">
+                                Đặt phòng
+                            </h2>
 
                             <!-- Booking Form -->
                             <form
@@ -1269,6 +1314,7 @@ import AppLayout from "@/layouts/AppLayout.vue";
 import { useAuth } from "@/composables/useAuth";
 import RoomCard from "@/components/booking/RoomCard.vue";
 import DatePicker from "@/components/ui/DatePicker.vue";
+import { getAmenityIcon, getAmenityName } from "@/utils/amenityIcons";
 import {
     ChevronLeftIcon,
     ChevronRightIcon,
@@ -2038,6 +2084,27 @@ const roomImages = computed(() => {
             (img) => img && img.trim() !== ""
         );
     }
+    return [];
+});
+
+// Room amenities - lấy từ room hoặc house
+const roomAmenities = computed(() => {
+    if (!selectedRoom.value) return [];
+
+    // Ưu tiên lấy từ room, nếu không có thì lấy từ house
+    const amenities =
+        selectedRoom.value.amenities || props.house?.amenities || {};
+
+    // Nếu là array, trả về trực tiếp
+    if (Array.isArray(amenities)) {
+        return amenities.filter(Boolean);
+    }
+
+    // Nếu là object, chuyển thành array các key có value truthy
+    if (typeof amenities === "object" && amenities !== null) {
+        return Object.keys(amenities).filter((key) => amenities[key]);
+    }
+
     return [];
 });
 
