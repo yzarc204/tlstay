@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Cache;
 
 class Setting extends Model
 {
@@ -16,12 +17,22 @@ class Setting extends Model
     ];
 
     /**
+     * Cache key prefix
+     */
+    const CACHE_PREFIX = 'settings_';
+    const CACHE_TTL = 3600; // 1 hour
+
+    /**
      * Get setting value by key
      */
     public static function get(string $key, $default = null)
     {
-        $setting = static::where('key', $key)->first();
-        return $setting ? $setting->value : $default;
+        $cacheKey = self::CACHE_PREFIX . 'get_' . $key;
+        
+        return Cache::remember($cacheKey, self::CACHE_TTL, function () use ($key, $default) {
+            $setting = static::where('key', $key)->first();
+            return $setting ? $setting->value : $default;
+        });
     }
 
     /**
@@ -38,6 +49,9 @@ class Setting extends Model
                 'group' => $group,
             ]
         );
+        
+        // Clear cache when setting is updated
+        self::clearCache();
     }
 
     /**
@@ -45,11 +59,15 @@ class Setting extends Model
      */
     public static function getGrouped(): array
     {
-        return static::orderBy('group')
-            ->orderBy('id')
-            ->get()
-            ->groupBy('group')
-            ->toArray();
+        $cacheKey = self::CACHE_PREFIX . 'grouped';
+        
+        return Cache::remember($cacheKey, self::CACHE_TTL, function () {
+            return static::orderBy('group')
+                ->orderBy('id')
+                ->get()
+                ->groupBy('group')
+                ->toArray();
+        });
     }
 
     /**
@@ -57,6 +75,46 @@ class Setting extends Model
      */
     public static function getAll(): array
     {
-        return static::pluck('value', 'key')->toArray();
+        $cacheKey = self::CACHE_PREFIX . 'all';
+        
+        return Cache::remember($cacheKey, self::CACHE_TTL, function () {
+            return static::pluck('value', 'key')->toArray();
+        });
+    }
+
+    /**
+     * Clear all settings cache
+     */
+    public static function clearCache(): void
+    {
+        // Clear all cache keys that start with settings prefix
+        Cache::forget(self::CACHE_PREFIX . 'all');
+        Cache::forget(self::CACHE_PREFIX . 'grouped');
+        
+        // Clear individual setting caches
+        // Note: We can't clear all individual caches without knowing all keys,
+        // but they will expire naturally after TTL
+        // If needed, we can store keys in a separate cache entry
+        $settings = static::pluck('key')->toArray();
+        foreach ($settings as $key) {
+            Cache::forget(self::CACHE_PREFIX . 'get_' . $key);
+        }
+    }
+
+    /**
+     * Boot method to clear cache on model events
+     */
+    protected static function boot()
+    {
+        parent::boot();
+
+        // Clear cache when settings are created, updated, or deleted
+        static::saved(function () {
+            self::clearCache();
+        });
+
+        static::deleted(function () {
+            self::clearCache();
+        });
     }
 }

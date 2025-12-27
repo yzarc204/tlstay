@@ -116,10 +116,26 @@ class SettingsController extends Controller
 
             DB::commit();
 
+            // Clear cache after updating settings
+            Setting::clearCache();
+
             return back()->with('success', 'Cài đặt đã được cập nhật thành công!');
         } catch (\Exception $e) {
             DB::rollBack();
             return back()->with('error', 'Có lỗi xảy ra khi cập nhật cài đặt: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Clear settings cache
+     */
+    public function clearCache()
+    {
+        try {
+            Setting::clearCache();
+            return back()->with('success', 'Đã xóa cache cài đặt thành công!');
+        } catch (\Exception $e) {
+            return back()->with('error', 'Có lỗi xảy ra khi xóa cache: ' . $e->getMessage());
         }
     }
 

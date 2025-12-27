@@ -122,6 +122,7 @@ Route::middleware(['auth', 'role:manager'])->group(function () {
         Route::get('/', [\App\Http\Controllers\Admin\SettingsController::class, 'index'])->name('index');
         Route::put('/', [\App\Http\Controllers\Admin\SettingsController::class, 'update'])->name('update');
         Route::post('/', [\App\Http\Controllers\Admin\SettingsController::class, 'update'])->name('update.post'); // For file uploads
+        Route::post('/clear-cache', [\App\Http\Controllers\Admin\SettingsController::class, 'clearCache'])->name('clear-cache');
         
         // Social Links
         Route::post('/social-links', [\App\Http\Controllers\Admin\SettingsController::class, 'storeSocialLink'])->name('social-links.store');

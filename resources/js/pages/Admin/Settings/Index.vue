@@ -8,6 +8,18 @@
           <h1 class="text-2xl font-bold text-gray-900">Cài đặt website</h1>
           <p class="text-gray-600 mt-1">Quản lý thông tin cơ bản của website</p>
         </div>
+        <div class="flex items-center space-x-3">
+          <button
+            @click="handleClearCache"
+            :disabled="clearingCache"
+            type="button"
+            class="px-4 py-2 border border-orange-300 text-orange-700 rounded-lg hover:bg-orange-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
+            title="Xóa cache cài đặt để đảm bảo dữ liệu được cập nhật mới nhất"
+          >
+            <ArrowPathIcon class="w-5 h-5" :class="{ 'animate-spin': clearingCache }" />
+            <span>{{ clearingCache ? 'Đang xóa...' : 'Xóa cache' }}</span>
+          </button>
+        </div>
       </div>
 
       <!-- Flash Messages -->
@@ -404,6 +416,8 @@
 import { ref, reactive, onMounted, watch } from 'vue'
 import { Head, Link, useForm, router } from '@inertiajs/vue3'
 import AdminLayout from '@/layouts/AdminLayout.vue'
+import { useToast } from '@/composables/useToast'
+import { useConfirm } from '@/composables/useConfirm'
 import {
   Cog6ToothIcon,
   PhoneIcon,
@@ -412,6 +426,7 @@ import {
   PencilIcon,
   TrashIcon,
   PhotoIcon,
+  ArrowPathIcon,
 } from '@heroicons/vue/24/outline'
 
 const props = defineProps({
@@ -425,6 +440,12 @@ const props = defineProps({
   },
 })
 
+// Toast notification
+const toast = useToast()
+
+// Confirm dialog
+const confirm = useConfirm()
+
 // Prepare form data
 const formData = reactive({
   settings: {},
@@ -435,6 +456,9 @@ const logoPreview = ref(null)
 const currentLogo = ref(null)
 const logoFile = ref(null)
 const logoShowText = ref(true) // Default: show text with logo
+
+// Clear cache state
+const clearingCache = ref(false)
 
 // Initialize form data from props
 onMounted(() => {
@@ -521,6 +545,9 @@ const handleSubmit = () => {
     preserveScroll: true,
     forceFormData: true,
     onSuccess: (page) => {
+      // Show success toast
+      toast.success('Cài đặt đã được cập nhật thành công!')
+      
       // Reset logo preview and file
       logoPreview.value = null
       logoFile.value = null
@@ -547,6 +574,40 @@ const handleSubmit = () => {
       
       // Reload to get updated settings
       router.reload({ only: ['settings'] })
+    },
+    onError: () => {
+      toast.error('Có lỗi xảy ra khi cập nhật cài đặt. Vui lòng thử lại.')
+    },
+  })
+}
+
+// Handle clear cache
+const handleClearCache = () => {
+  confirm.show({
+    title: 'Xóa cache cài đặt',
+    message: 'Bạn có chắc chắn muốn xóa cache cài đặt? Điều này sẽ giúp website load dữ liệu mới nhất từ database.',
+    confirmText: 'Xóa cache',
+    cancelText: 'Hủy',
+    confirmVariant: 'danger',
+    cancelVariant: 'outline',
+    onConfirm: () => {
+      clearingCache.value = true
+      router.post('/admin/settings/clear-cache', {}, {
+        preserveScroll: true,
+        onSuccess: () => {
+          clearingCache.value = false
+          // Show success toast
+          toast.success('Đã xóa cache cài đặt thành công!')
+          // Delay reload to ensure toast is visible
+          setTimeout(() => {
+            router.reload()
+          }, 500)
+        },
+        onError: () => {
+          clearingCache.value = false
+          toast.error('Có lỗi xảy ra khi xóa cache. Vui lòng thử lại.')
+        },
+      })
     },
   })
 }
