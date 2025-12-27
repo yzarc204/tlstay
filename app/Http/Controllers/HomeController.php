@@ -11,7 +11,7 @@ class HomeController extends Controller
 {
     public function index()
     {
-        // Lấy 3 nhà trọ ngẫu nhiên, ưu tiên nhà trọ có phòng trống
+        // Lấy 6 nhà trọ nổi bật, sắp xếp theo rating, ưu tiên nhà trọ có phòng trống
         $featuredHouses = House::with(['owner'])
             ->withCount([
                 'rooms as available_rooms_count' => function ($query) {
@@ -21,11 +21,12 @@ class HomeController extends Controller
             ])
             ->get()
             ->sortByDesc(function ($house) {
-                // Ưu tiên nhà trọ có phòng trống
-                return ($house->available_rooms_count ?? 0) > 0 ? 1 : 0;
+                // Ưu tiên nhà trọ có phòng trống, sau đó sắp xếp theo rating
+                $hasAvailableRooms = ($house->available_rooms_count ?? 0) > 0 ? 1000 : 0;
+                $rating = (float) ($house->rating ?? 0);
+                return $hasAvailableRooms + $rating;
             })
-            ->shuffle() // Xáo trộn ngẫu nhiên
-            ->take(3)
+            ->take(6)
             ->map(function ($house) {
                 return [
                     'id' => $house->id,
