@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Booking;
 use App\Models\House;
+use App\Services\SystemTimeService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -81,7 +82,7 @@ class BookingController extends Controller
                 'start_date' => $booking->start_date->format('Y-m-d'),
                 'end_date' => $booking->end_date->format('Y-m-d'),
                 'status' => $booking->status,
-                'booking_status' => $booking->booking_status,
+                'booking_status' => $booking->booking_status ?? $this->calculateBookingStatus($booking),
                 'total_price' => (float) $booking->total_price,
                 'discount_amount' => (float) $booking->discount_amount,
                 'payment_status' => $booking->payment_status,
@@ -148,7 +149,7 @@ class BookingController extends Controller
             'start_date' => $booking->start_date->format('Y-m-d'),
             'end_date' => $booking->end_date->format('Y-m-d'),
             'status' => $booking->status,
-            'booking_status' => $booking->booking_status,
+            'booking_status' => $booking->booking_status ?? $this->calculateBookingStatus($booking),
             'total_price' => (float) $booking->total_price,
             'discount_amount' => (float) $booking->discount_amount,
             'payment_status' => $booking->payment_status,
@@ -181,5 +182,33 @@ class BookingController extends Controller
         return Inertia::render('Admin/Bookings/Show', [
             'booking' => $bookingData,
         ]);
+    }
+
+    /**
+     * Calculate booking status based on dates (same logic as RentalHistoryController)
+     */
+    private function calculateBookingStatus($booking): string
+    {
+        // Only calculate for paid bookings
+        if ($booking->payment_status !== 'paid') {
+            return 'upcoming'; // Default for unpaid bookings
+        }
+
+        $today = SystemTimeService::today();
+        $startDate = $booking->start_date;
+        $endDate = $booking->end_date;
+
+        // If start date is in the future, it's upcoming
+        if ($startDate->gt($today)) {
+            return 'upcoming';
+        }
+
+        // If end date has passed, it's past
+        if ($endDate->lt($today)) {
+            return 'past';
+        }
+
+        // If start_date <= today <= end_date, it's active
+        return 'active';
     }
 }

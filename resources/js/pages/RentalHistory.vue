@@ -273,7 +273,7 @@ const getStatusBadgeClass = (status) => {
   const classMap = {
     pending: 'bg-yellow-100 text-yellow-700',
     active: 'bg-primary-100 text-primary-700',
-    upcoming: 'bg-blue-100 text-blue-700',
+    upcoming: 'bg-amber-100 text-amber-800 border border-amber-300',
     completed: 'bg-gray-100 text-gray-600',
   }
   return classMap[status] || 'bg-gray-100 text-gray-600'
@@ -294,7 +294,7 @@ const getBookingStatusText = (status) => {
 
 const getBookingStatusBadgeClass = (status) => {
   const classMap = {
-    upcoming: 'bg-amber-100 text-amber-700',
+    upcoming: 'bg-amber-100 text-amber-800 border border-amber-300',
     active: 'bg-green-100 text-green-700',
     past: 'bg-gray-100 text-gray-600',
     pending: 'bg-yellow-100 text-yellow-700',

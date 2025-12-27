@@ -25,10 +25,10 @@ class RentalHistoryController extends Controller
             ->orderBy('created_at', 'desc')
             ->get()
             ->map(function ($booking) {
-                $canReview = $booking->payment_status === 'paid' 
-                    && $booking->status !== 'cancelled' 
+                $canReview = $booking->payment_status === 'paid'
+                    && $booking->status !== 'cancelled'
                     && !$booking->review;
-                
+
                 return [
                     'id' => $booking->id,
                     'booking_code' => $booking->booking_code,
@@ -70,7 +70,7 @@ class RentalHistoryController extends Controller
                 } elseif ($invoice->month && $invoice->year) {
                     $monthYear = "{$invoice->month}/{$invoice->year}";
                 }
-                
+
                 return [
                     'id' => $invoice->id,
                     'booking_id' => $invoice->booking_id,
@@ -155,11 +155,13 @@ class RentalHistoryController extends Controller
         // Check if user can review
         $canReview = false;
         $reviewableBooking = null;
-        if ($booking->payment_status === 'paid' 
-            && $booking->status !== 'cancelled' 
-            && !$booking->review) {
+        if (
+            $booking->payment_status === 'paid'
+            && $booking->status !== 'cancelled'
+            && !$booking->review
+        ) {
             $today = SystemTimeService::today();
-            
+
             // Check if booking has ended and within 14 days
             if ($booking->end_date->lte($today)) {
                 $reviewDeadline = $booking->end_date->copy()->addDays(14);
@@ -259,6 +261,6 @@ class RentalHistoryController extends Controller
         }
 
         // If start_date <= today <= end_date, it's active
-        return 'active';
+        return null;
     }
 }

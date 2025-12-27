@@ -30,10 +30,11 @@
         <label class="block text-sm font-medium text-gray-700 mb-2">
           Ngày bắt đầu thuê <span class="text-red-500">*</span>
         </label>
-        <DateInput
+        <DatePicker
           :model-value="form.rental_start_date"
           @update:modelValue="$emit('update:form', { ...form, rental_start_date: $event })"
           :error="errors.rental_start_date"
+          format="dd/mm/yyyy"
           placeholder="dd/mm/yyyy"
         />
       </div>
@@ -48,6 +49,7 @@
           @update:modelValue="$emit('update:form', { ...form, rental_end_date: $event })"
           :error="errors.rental_end_date"
           :min="form.rental_start_date || undefined"
+          format="dd/mm/yyyy"
           placeholder="dd/mm/yyyy"
         />
       </div>
@@ -127,9 +129,10 @@
               <label class="block text-sm font-medium text-gray-700 mb-2">
                 Từ ngày <span class="text-red-500">*</span>
               </label>
-              <DateInput
+              <DatePicker
                 v-model="invoiceForm.start_date"
                 :error="invoiceErrors.start_date"
+                format="dd/mm/yyyy"
                 placeholder="dd/mm/yyyy"
               />
             </div>
@@ -137,10 +140,11 @@
               <label class="block text-sm font-medium text-gray-700 mb-2">
                 Đến ngày <span class="text-red-500">*</span>
               </label>
-              <DateInput
+              <DatePicker
                 v-model="invoiceForm.end_date"
                 :error="invoiceErrors.end_date"
                 :min="invoiceForm.start_date || undefined"
+                format="dd/mm/yyyy"
                 placeholder="dd/mm/yyyy"
               />
             </div>
@@ -219,9 +223,10 @@
             <label class="block text-sm font-medium text-gray-700 mb-2">
               Ngày đến hạn
             </label>
-            <DateInput
+            <DatePicker
               v-model="invoiceForm.due_date"
               :error="invoiceErrors.due_date"
+              format="dd/mm/yyyy"
               placeholder="dd/mm/yyyy"
             />
           </div>
@@ -260,7 +265,6 @@ import { router } from '@inertiajs/vue3'
 import { useToast } from '@/composables/useToast'
 import Button from '@/components/ui/Button.vue'
 import SelectSearchable from '@/components/ui/SelectSearchable.vue'
-import DateInput from '@/components/ui/DateInput.vue'
 import DatePicker from '@/components/ui/DatePicker.vue'
 
 const props = defineProps({

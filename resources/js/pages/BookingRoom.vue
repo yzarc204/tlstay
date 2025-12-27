@@ -341,6 +341,7 @@
                                     <DatePicker
                                         v-model="startDate"
                                         :min="today"
+                                        format="dd/mm/yyyy"
                                         placeholder="dd/mm/yyyy"
                                         :error="
                                             startDateError ||
@@ -358,6 +359,7 @@
                                     <DatePicker
                                         v-model="endDate"
                                         :min="startDate || today"
+                                        format="dd/mm/yyyy"
                                         placeholder="dd/mm/yyyy"
                                         :error="
                                             endDateError ||
@@ -933,11 +935,11 @@
                             >
                                 Ngày sinh <span class="text-red-500">*</span>
                             </label>
-                            <DateInput
+                            <DatePicker
                                 v-model="personalInfoForm.date_of_birth"
                                 :max="today"
+                                format="dd/mm/yyyy"
                                 placeholder="dd/mm/yyyy"
-                                required
                             />
                             <p
                                 v-if="personalInfoForm.errors.date_of_birth"
@@ -1033,11 +1035,11 @@
                                 Ngày cấp CCCD
                                 <span class="text-red-500">*</span>
                             </label>
-                            <DateInput
+                            <DatePicker
                                 v-model="personalInfoForm.id_card_issue_date"
                                 :max="today"
+                                format="dd/mm/yyyy"
                                 placeholder="dd/mm/yyyy"
-                                required
                             />
                             <p
                                 v-if="
@@ -1207,7 +1209,6 @@ import * as yup from "yup";
 import AppLayout from "@/layouts/AppLayout.vue";
 import { useAuth } from "@/composables/useAuth";
 import RoomCard from "@/components/booking/RoomCard.vue";
-import DateInput from "@/components/ui/DateInput.vue";
 import DatePicker from "@/components/ui/DatePicker.vue";
 import {
     ChevronLeftIcon,

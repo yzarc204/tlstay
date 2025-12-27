@@ -85,12 +85,12 @@
                   <label class="block text-sm font-medium text-gray-700 mb-2">
                     Ngày sinh <span class="text-red-500">*</span>
                   </label>
-                  <DateInput
+                  <DatePicker
                     v-model="form.date_of_birth"
                     :max="today"
                     :error="form.errors.date_of_birth"
+                    format="dd/mm/yyyy"
                     placeholder="dd/mm/yyyy"
-                    required
                   />
                 </div>
 
@@ -154,12 +154,12 @@
                   <label class="block text-sm font-medium text-gray-700 mb-2">
                     Ngày cấp <span class="text-red-500">*</span>
                   </label>
-                  <DateInput
+                  <DatePicker
                     v-model="form.id_card_issue_date"
                     :max="today"
                     :error="form.errors.id_card_issue_date"
+                    format="dd/mm/yyyy"
                     placeholder="dd/mm/yyyy"
-                    required
                   />
                 </div>
 
@@ -318,7 +318,7 @@ import { computed, ref } from 'vue'
 import { Head, useForm, Link } from '@inertiajs/vue3'
 import AppLayout from '@/layouts/AppLayout.vue'
 import SignaturePad from '@/components/ui/SignaturePad.vue'
-import DateInput from '@/components/ui/DateInput.vue'
+import DatePicker from '@/components/ui/DatePicker.vue'
 import {
   UserIcon,
   IdentificationIcon,

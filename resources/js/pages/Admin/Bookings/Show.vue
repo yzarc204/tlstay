@@ -373,7 +373,7 @@ const getBookingStatusText = (status) => {
 
 const getBookingStatusBadgeClass = (status) => {
   const classMap = {
-    upcoming: 'bg-blue-100 text-blue-800',
+    upcoming: 'bg-amber-100 text-amber-800 border border-amber-300',
     active: 'bg-green-100 text-green-800',
     past: 'bg-gray-100 text-gray-800',
   }
