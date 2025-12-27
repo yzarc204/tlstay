@@ -99,13 +99,15 @@ class HouseSeeder extends Seeder
             $this->command->info('Tìm thấy ' . count($sampleImages) . ' ảnh mẫu.');
         }
 
-        // Danh sách tiện nghi
+        // Danh sách tiện nghi (sử dụng key tiếng Anh để khớp với frontend)
         $amenitiesList = [
-            ['WiFi', 'Điều hòa', 'Nóng lạnh', 'Tủ lạnh'],
-            ['WiFi', 'Điều hòa', 'Nóng lạnh', 'Tủ lạnh', 'Máy giặt'],
-            ['WiFi', 'Điều hòa', 'Nóng lạnh', 'Tủ lạnh', 'Máy giặt', 'Bếp'],
-            ['WiFi', 'Điều hòa', 'Nóng lạnh'],
-            ['WiFi', 'Điều hòa', 'Nóng lạnh', 'Tủ lạnh', 'Bếp'],
+            ['Wifi', 'AirConditioning', 'HotWater', 'Refrigerator'],
+            ['Wifi', 'AirConditioning', 'HotWater', 'Refrigerator', 'SharedWashingMachine'],
+            ['Wifi', 'AirConditioning', 'HotWater', 'Refrigerator', 'SharedWashingMachine', 'SharedKitchen'],
+            ['Wifi', 'AirConditioning', 'HotWater'],
+            ['Wifi', 'AirConditioning', 'HotWater', 'Refrigerator', 'PrivateKitchen'],
+            ['Wifi', 'AirConditioning', 'HotWater', 'PrivateBathroom', 'Balcony'],
+            ['Wifi', 'AirConditioning', 'HotWater', 'Refrigerator', 'Bed', 'Wardrobe'],
         ];
 
         // Tạo 50 nhà trọ
@@ -210,19 +212,25 @@ class HouseSeeder extends Seeder
                     // Diện tích từ 15-30 m²
                     $area = rand(15, 30);
 
-                    // Tiện nghi phòng (có thể khác với nhà)
+                    // Tiện nghi phòng (sử dụng key tiếng Anh để khớp với frontend)
                     $roomAmenities = [];
                     if (rand(0, 1)) {
-                        $roomAmenities[] = 'Điều hòa';
+                        $roomAmenities[] = 'AirConditioning';
                     }
                     if (rand(0, 1)) {
-                        $roomAmenities[] = 'Nóng lạnh';
+                        $roomAmenities[] = 'HotWater';
                     }
                     if (rand(0, 1)) {
-                        $roomAmenities[] = 'Tủ lạnh';
+                        $roomAmenities[] = 'Refrigerator';
+                    }
+                    if (rand(0, 1)) {
+                        $roomAmenities[] = 'PrivateBathroom';
+                    }
+                    if (rand(0, 1)) {
+                        $roomAmenities[] = 'Balcony';
                     }
                     if (empty($roomAmenities)) {
-                        $roomAmenities = ['Nóng lạnh'];
+                        $roomAmenities = ['HotWater'];
                     }
 
                     // Lấy ảnh ngẫu nhiên cho phòng (2-4 ảnh)
