@@ -261,6 +261,6 @@ class RentalHistoryController extends Controller
         }
 
         // If start_date <= today <= end_date, it's active
-        return null;
+        return 'active';
     }
 }
