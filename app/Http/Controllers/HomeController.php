@@ -11,6 +11,14 @@ class HomeController extends Controller
 {
     public function index()
     {
+        // Get wishlist house IDs for current user
+        $wishlistHouseIds = [];
+        if (auth()->check()) {
+            $wishlistHouseIds = \App\Models\Wishlist::where('user_id', auth()->id())
+                ->pluck('house_id')
+                ->toArray();
+        }
+
         // Lấy 6 nhà trọ nổi bật, sắp xếp theo rating, ưu tiên nhà trọ có phòng trống
         $featuredHouses = House::with(['owner'])
             ->withCount([
@@ -27,7 +35,7 @@ class HomeController extends Controller
                 return $hasAvailableRooms + $rating;
             })
             ->take(6)
-            ->map(function ($house) {
+            ->map(function ($house) use ($wishlistHouseIds) {
                 return [
                     'id' => $house->id,
                     'name' => $house->name,
@@ -42,6 +50,7 @@ class HomeController extends Controller
                     'rating' => (float) ($house->rating ?? 0),
                     'reviews' => $house->reviews ?? 0,
                     'amenities' => $house->amenities ?? [],
+                    'isInWishlist' => in_array($house->id, $wishlistHouseIds),
                 ];
             })
             ->values();

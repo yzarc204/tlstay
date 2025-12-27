@@ -7,6 +7,7 @@ use App\Http\Controllers\HouseController;
 use App\Http\Controllers\BookingController;
 use App\Http\Controllers\RentalHistoryController;
 use App\Http\Controllers\InvoiceController;
+use App\Http\Controllers\WishlistController;
 use App\Http\Controllers\AdminController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -39,7 +40,7 @@ Route::middleware('auth')->get('/booking/{id}/success', [BookingController::clas
 Route::middleware('auth')->group(function () {
     Route::get('/payment/{bookingId}', [\App\Http\Controllers\PaymentController::class, 'create'])->name('payment.create');
     Route::post('/payment/{bookingId}/confirm', [\App\Http\Controllers\PaymentController::class, 'confirm'])->name('payment.confirm');
-    
+
     // Invoice Payment Routes
     Route::get('/payment/invoice/{invoiceId}', [\App\Http\Controllers\PaymentController::class, 'createInvoice'])->name('payment.invoice.create');
     Route::post('/payment/invoice/{invoiceId}/confirm', [\App\Http\Controllers\PaymentController::class, 'confirmInvoice'])->name('payment.invoice.confirm');
@@ -59,19 +60,26 @@ Route::middleware('auth')->group(function () {
     Route::get('/history', [RentalHistoryController::class, 'index'])->name('history.index');
     Route::get('/my-rentals', [RentalHistoryController::class, 'index'])->name('my-rentals');
     Route::get('/my-rentals/{booking}', [RentalHistoryController::class, 'show'])->name('my-rentals.show');
-    
+
     // Contract download
     Route::get('/contract/{booking}', [\App\Http\Controllers\ContractController::class, 'download'])->name('contract.download');
     Route::get('/contract/{booking}/preview', [\App\Http\Controllers\ContractController::class, 'preview'])->name('contract.preview');
     Route::get('/contract/{booking}/sign', [\App\Http\Controllers\ContractController::class, 'showSign'])->name('contract.sign.show');
     Route::post('/contract/{booking}/sign', [\App\Http\Controllers\ContractController::class, 'sign'])->name('contract.sign');
-    
+
     // Invoices
     Route::get('/invoices', [InvoiceController::class, 'index'])->name('invoices.index');
     Route::get('/invoices/{id}', [InvoiceController::class, 'show'])->name('invoices.show');
-    
+
     // Reviews
     Route::post('/reviews', [\App\Http\Controllers\ReviewController::class, 'store'])->name('reviews.store');
+
+    // Wishlist Routes
+    Route::get('/wishlist', [WishlistController::class, 'index'])->name('wishlist.index');
+    Route::post('/wishlist', [WishlistController::class, 'store'])->name('wishlist.store');
+    Route::post('/wishlist/toggle', [WishlistController::class, 'toggle'])->name('wishlist.toggle');
+    Route::get('/wishlist/check', [WishlistController::class, 'check'])->name('wishlist.check');
+    Route::delete('/wishlist/{id}', [WishlistController::class, 'destroy'])->name('wishlist.destroy');
 });
 
 // Profile Routes
@@ -123,7 +131,7 @@ Route::middleware(['auth', 'role:manager'])->group(function () {
         Route::put('/', [\App\Http\Controllers\Admin\SettingsController::class, 'update'])->name('update');
         Route::post('/', [\App\Http\Controllers\Admin\SettingsController::class, 'update'])->name('update.post'); // For file uploads
         Route::post('/clear-cache', [\App\Http\Controllers\Admin\SettingsController::class, 'clearCache'])->name('clear-cache');
-        
+
         // Social Links
         Route::post('/social-links', [\App\Http\Controllers\Admin\SettingsController::class, 'storeSocialLink'])->name('social-links.store');
         Route::put('/social-links/{id}', [\App\Http\Controllers\Admin\SettingsController::class, 'updateSocialLink'])->name('social-links.update');
@@ -148,7 +156,7 @@ Route::middleware(['auth', 'role:manager'])->group(function () {
     // Banner Management
     // Additional route for POST update (for file uploads) - must be before resource route
     Route::post('admin/banners/{banner}', [\App\Http\Controllers\Admin\BannerController::class, 'update'])->name('admin.banners.update.post');
-    
+
     Route::resource('admin/banners', \App\Http\Controllers\Admin\BannerController::class)->names([
         'index' => 'admin.banners.index',
         'create' => 'admin.banners.create',

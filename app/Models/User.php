@@ -97,6 +97,14 @@ class User extends Authenticatable
     }
 
     /**
+     * Get the wishlist items for the user.
+     */
+    public function wishlists(): HasMany
+    {
+        return $this->hasMany(Wishlist::class);
+    }
+
+    /**
      * Check if user is a manager.
      */
     public function isManager(): bool
@@ -157,11 +165,11 @@ class User extends Authenticatable
      */
     public function hasCompletePersonalInfo(): bool
     {
-        return !empty($this->id_card_number) 
+        return !empty($this->id_card_number)
             && !empty($this->id_card_issue_date)
             && !empty($this->id_card_issue_place)
-            && !empty($this->permanent_address) 
-            && !empty($this->date_of_birth) 
+            && !empty($this->permanent_address)
+            && !empty($this->date_of_birth)
             && !empty($this->gender);
     }
 }

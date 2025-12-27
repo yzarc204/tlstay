@@ -79,6 +79,14 @@ class House extends Model
     }
 
     /**
+     * Get the wishlist items for the house.
+     */
+    public function wishlists(): HasMany
+    {
+        return $this->hasMany(Wishlist::class);
+    }
+
+    /**
      * Get available rooms count.
      */
     public function getAvailableRoomsAttribute(): int

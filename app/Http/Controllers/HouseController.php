@@ -47,13 +47,21 @@ class HouseController extends Controller
             }
         }
 
+        // Get wishlist house IDs for current user
+        $wishlistHouseIds = [];
+        if (auth()->check()) {
+            $wishlistHouseIds = \App\Models\Wishlist::where('user_id', auth()->id())
+                ->pluck('house_id')
+                ->toArray();
+        }
+
         $houses = $query->paginate(12)->withQueryString()
-            ->through(function ($house) {
+            ->through(function ($house) use ($wishlistHouseIds) {
                 // Calculate available rooms count based on effective status
                 $availableRoomsCount = $house->rooms->filter(function ($room) {
                     return $room->getEffectiveStatus() === 'available';
                 })->count();
-                
+
                 return [
                     'id' => $house->id,
                     'name' => $house->name,
@@ -70,6 +78,7 @@ class HouseController extends Controller
                     'amenities' => $house->amenities ?? [],
                     'ward_name' => $house->wardAddress ? $house->wardAddress->name : null,
                     'street_name' => $house->streetAddress ? $house->streetAddress->name : null,
+                    'isInWishlist' => in_array($house->id, $wishlistHouseIds),
                 ];
             });
 
@@ -175,19 +184,19 @@ class HouseController extends Controller
         $reviewableBooking = null;
         if (auth()->check()) {
             $user = auth()->user();
-            
+
             // Đếm số lần đã thuê (bookings đã thanh toán và không bị hủy)
             $totalBookings = \App\Models\Booking::where('user_id', $user->id)
                 ->where('house_id', $house->id)
                 ->where('payment_status', 'paid')
                 ->where('status', '!=', 'cancelled')
                 ->count();
-            
+
             // Đếm số lần đã đánh giá
             $totalReviews = \App\Models\Review::where('user_id', $user->id)
                 ->where('house_id', $house->id)
                 ->count();
-            
+
             // Kiểm tra điều kiện:
             // 1. Phải có ít nhất 1 booking đã thanh toán
             // 2. Số lần đánh giá phải nhỏ hơn số lần thuê
@@ -195,7 +204,7 @@ class HouseController extends Controller
             // 4. Booking phải đã kết thúc và trong vòng 14 ngày sau khi kết thúc
             if ($totalBookings > 0 && $totalReviews < $totalBookings) {
                 $today = SystemTimeService::today();
-                
+
                 // Find a booking that's paid, not cancelled, doesn't have a review,
                 // has ended, and is within 14 days after end date
                 $reviewableBooking = \App\Models\Booking::where('user_id', $user->id)
@@ -206,9 +215,17 @@ class HouseController extends Controller
                     ->where('end_date', '<=', $today) // Booking đã kết thúc
                     ->whereRaw('DATE_ADD(end_date, INTERVAL 14 DAY) >= ?', [$today]) // Trong vòng 14 ngày sau khi kết thúc
                     ->first();
-                
+
                 $canReview = $reviewableBooking !== null;
             }
+        }
+
+        // Check if house is in user's wishlist
+        $isInWishlist = false;
+        if (auth()->check()) {
+            $isInWishlist = \App\Models\Wishlist::where('user_id', auth()->id())
+                ->where('house_id', $house->id)
+                ->exists();
         }
 
         $houseData = [
@@ -236,6 +253,7 @@ class HouseController extends Controller
                 'email' => $house->owner->email,
                 'phone' => $house->owner->phone,
             ] : null,
+            'isInWishlist' => $isInWishlist,
         ];
 
         return Inertia::render('HouseDetail', [
