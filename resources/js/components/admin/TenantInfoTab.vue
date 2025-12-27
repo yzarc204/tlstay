@@ -43,7 +43,7 @@
         <label class="block text-sm font-medium text-gray-700 mb-2">
           Ngày kết thúc thuê <span class="text-red-500">*</span>
         </label>
-        <DateInput
+        <DatePicker
           :model-value="form.rental_end_date"
           @update:modelValue="$emit('update:form', { ...form, rental_end_date: $event })"
           :error="errors.rental_end_date"
@@ -261,6 +261,7 @@ import { useToast } from '@/composables/useToast'
 import Button from '@/components/ui/Button.vue'
 import SelectSearchable from '@/components/ui/SelectSearchable.vue'
 import DateInput from '@/components/ui/DateInput.vue'
+import DatePicker from '@/components/ui/DatePicker.vue'
 
 const props = defineProps({
   form: {

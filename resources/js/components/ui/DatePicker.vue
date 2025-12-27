@@ -3,23 +3,28 @@
     <div class="relative">
       <input
         ref="inputRef"
-        :value="displayValue"
+        v-model="inputValue"
         type="text"
-        :placeholder="placeholder || 'dd/mm/yyyy'"
+        :placeholder="placeholder || computedPlaceholder"
         :class="[
-          'w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:outline-none transition-colors',
+          'w-full px-4 py-2 pr-10 border rounded-lg focus:ring-2 focus:outline-none transition-colors',
           error
             ? 'border-red-500 focus:ring-red-500'
             : 'border-gray-300 focus:ring-primary'
         ]"
         :disabled="disabled"
-        readonly
-        @click="toggleCalendar"
-        @focus="toggleCalendar"
+        @input="handleInput"
+        @blur="handleBlur"
+        @keydown="handleKeydown"
       />
-      <CalendarIcon
-        class="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400 pointer-events-none"
-      />
+      <button
+        type="button"
+        @click.stop="toggleCalendar"
+        :disabled="disabled"
+        class="absolute right-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400 hover:text-gray-600 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
+      >
+        <CalendarIcon class="h-5 w-5" />
+      </button>
     </div>
 
     <!-- Calendar Popup -->
@@ -136,7 +141,15 @@ const props = defineProps({
   },
   placeholder: {
     type: String,
-    default: 'dd/mm/yyyy'
+    default: ''
+  },
+  format: {
+    type: String,
+    default: 'dd/mm/yyyy',
+    validator: (value) => {
+      // Supported formats: dd/mm/yyyy, mm/dd/yyyy, yyyy-mm-dd, dd-mm-yyyy, mm-dd-yyyy
+      return ['dd/mm/yyyy', 'mm/dd/yyyy', 'yyyy-mm-dd', 'dd-mm-yyyy', 'mm-dd-yyyy'].includes(value)
+    }
   },
   error: {
     type: String,
@@ -167,6 +180,7 @@ const calendarRef = ref(null)
 const isOpen = ref(false)
 const currentMonth = ref(new Date().getMonth())
 const currentYear = ref(new Date().getFullYear())
+const inputValue = ref('')
 
 const weekDays = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7']
 const months = [
@@ -184,27 +198,273 @@ const years = computed(() => {
   return yearList
 })
 
-// Convert yyyy-mm-dd to dd/mm/yyyy
-const formatToDisplay = (value) => {
+// Format placeholder based on format prop
+const computedPlaceholder = computed(() => {
+  if (props.placeholder) return props.placeholder
+  return props.format
+})
+
+// Get separator based on format
+const separator = computed(() => {
+  return props.format.includes('/') ? '/' : '-'
+})
+
+// Format input as user types (similar to DateInput)
+const formatInputValue = (value) => {
   if (!value) return ''
-  if (/^\d{4}-\d{2}-\d{2}$/.test(value)) {
-    const [year, month, day] = value.split('-')
-    return `${day}/${month}/${year}`
+  
+  // Remove all non-digit characters
+  const digits = value.replace(/\D/g, '')
+  if (digits.length === 0) return ''
+  
+  const sep = separator.value
+  const maxDigits = props.format === 'yyyy-mm-dd' ? 8 : 8 // ddmmyyyy or yyyymmdd
+  
+  // Limit to max digits
+  const limitedDigits = digits.slice(0, maxDigits)
+  
+  // Format based on format type
+  switch (props.format) {
+    case 'dd/mm/yyyy':
+    case 'dd-mm-yyyy':
+      if (limitedDigits.length <= 2) {
+        return limitedDigits
+      } else if (limitedDigits.length <= 4) {
+        return `${limitedDigits.slice(0, 2)}${sep}${limitedDigits.slice(2)}`
+      } else {
+        return `${limitedDigits.slice(0, 2)}${sep}${limitedDigits.slice(2, 4)}${sep}${limitedDigits.slice(4, 8)}`
+      }
+    case 'mm/dd/yyyy':
+    case 'mm-dd-yyyy':
+      if (limitedDigits.length <= 2) {
+        return limitedDigits
+      } else if (limitedDigits.length <= 4) {
+        return `${limitedDigits.slice(0, 2)}${sep}${limitedDigits.slice(2)}`
+      } else {
+        return `${limitedDigits.slice(0, 2)}${sep}${limitedDigits.slice(2, 4)}${sep}${limitedDigits.slice(4, 8)}`
+      }
+    case 'yyyy-mm-dd':
+      if (limitedDigits.length <= 4) {
+        return limitedDigits
+      } else if (limitedDigits.length <= 6) {
+        return `${limitedDigits.slice(0, 4)}${sep}${limitedDigits.slice(4)}`
+      } else {
+        return `${limitedDigits.slice(0, 4)}${sep}${limitedDigits.slice(4, 6)}${sep}${limitedDigits.slice(6, 8)}`
+      }
+    default:
+      if (limitedDigits.length <= 2) {
+        return limitedDigits
+      } else if (limitedDigits.length <= 4) {
+        return `${limitedDigits.slice(0, 2)}${sep}${limitedDigits.slice(2)}`
+      } else {
+        return `${limitedDigits.slice(0, 2)}${sep}${limitedDigits.slice(2, 4)}${sep}${limitedDigits.slice(4, 8)}`
+      }
   }
-  return value
 }
 
-// Convert dd/mm/yyyy to yyyy-mm-dd
+// Convert custom format to yyyy-mm-dd (model format)
 const formatToModel = (day, month, year) => {
   const d = String(day).padStart(2, '0')
   const m = String(month + 1).padStart(2, '0')
   return `${year}-${m}-${d}`
 }
 
-// Get display value
-const displayValue = computed(() => {
-  return formatToDisplay(props.modelValue)
-})
+// Convert yyyy-mm-dd to display format
+const formatToDisplay = (value) => {
+  if (!value || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return ''
+  const [year, month, day] = value.split('-')
+  const sep = separator.value
+  
+  switch (props.format) {
+    case 'dd/mm/yyyy':
+    case 'dd-mm-yyyy':
+      return `${day}${sep}${month}${sep}${year}`
+    case 'mm/dd/yyyy':
+    case 'mm-dd-yyyy':
+      return `${month}${sep}${day}${sep}${year}`
+    case 'yyyy-mm-dd':
+      return `${year}${sep}${month}${sep}${day}`
+    default:
+      return `${day}${sep}${month}${sep}${year}`
+  }
+}
+
+// Validate and emit date
+const validateAndEmit = (day, month, year) => {
+  // If all fields are empty, emit empty
+  if (!day && !month && !year) {
+    emit('update:modelValue', '')
+    return false
+  }
+  
+  // If not all fields are filled, don't emit yet
+  if (!day || !month || !year) {
+    return false
+  }
+  
+  // Validate ranges
+  if (day < 1 || day > 31 || month < 1 || month > 12 || year < 1900 || year > 2100) {
+    return false
+  }
+  
+  // Validate actual date
+  const date = new Date(year, month - 1, day)
+  if (date.getDate() !== day || date.getMonth() !== month - 1 || date.getFullYear() !== year) {
+    return false
+  }
+  
+  // Check min/max constraints
+  const dateStr = formatToModel(day, month - 1, year)
+  const dateObj = new Date(dateStr + 'T00:00:00')
+  
+  if (props.min) {
+    const minDate = new Date(props.min + 'T00:00:00')
+    if (dateObj < minDate) return false
+  }
+  
+  if (props.max) {
+    const maxDate = new Date(props.max + 'T00:00:00')
+    if (dateObj > maxDate) return false
+  }
+  
+  emit('update:modelValue', dateStr)
+  return true
+}
+
+// Handle input - simple like DateInput
+const handleInput = (event) => {
+  const cursorPos = event.target.selectionStart
+  const value = event.target.value
+  const formatted = formatInputValue(value)
+  inputValue.value = formatted
+  
+  // Restore cursor position after formatting
+  nextTick(() => {
+    if (inputRef.value) {
+      // Calculate new cursor position
+      // Count digits before cursor in original value
+      const digitsBeforeCursor = value.slice(0, cursorPos).replace(/\D/g, '').length
+      
+      // Find position in formatted string that corresponds to same number of digits
+      let newCursorPos = 0
+      let digitCount = 0
+      
+      for (let i = 0; i < formatted.length && digitCount < digitsBeforeCursor; i++) {
+        if (/\d/.test(formatted[i])) {
+          digitCount++
+        }
+        newCursorPos = i + 1
+      }
+      
+      // If we're at the end of digits, position after last digit
+      if (digitCount < digitsBeforeCursor) {
+        newCursorPos = formatted.length
+      }
+      
+      inputRef.value.setSelectionRange(newCursorPos, newCursorPos)
+    }
+  })
+  
+  // Try to parse and emit if complete
+  const digits = formatted.replace(/\D/g, '')
+  if (digits.length === 8) {
+    // Complete date entered
+    let day, month, year
+    switch (props.format) {
+      case 'dd/mm/yyyy':
+      case 'dd-mm-yyyy':
+        day = parseInt(digits.slice(0, 2), 10)
+        month = parseInt(digits.slice(2, 4), 10)
+        year = parseInt(digits.slice(4, 8), 10)
+        break
+      case 'mm/dd/yyyy':
+      case 'mm-dd-yyyy':
+        month = parseInt(digits.slice(0, 2), 10)
+        day = parseInt(digits.slice(2, 4), 10)
+        year = parseInt(digits.slice(4, 8), 10)
+        break
+      case 'yyyy-mm-dd':
+        year = parseInt(digits.slice(0, 4), 10)
+        month = parseInt(digits.slice(4, 6), 10)
+        day = parseInt(digits.slice(6, 8), 10)
+        break
+    }
+    
+    if (day && month && year) {
+      validateAndEmit(day, month, year)
+    }
+  } else if (formatted.length === 0) {
+    emit('update:modelValue', '')
+  }
+}
+
+// Handle blur - validate and format
+const handleBlur = () => {
+  if (!inputValue.value) {
+    emit('update:modelValue', '')
+    return
+  }
+  
+  const digits = inputValue.value.replace(/\D/g, '')
+  if (digits.length === 8) {
+    // Complete date - validate
+    let day, month, year
+    switch (props.format) {
+      case 'dd/mm/yyyy':
+      case 'dd-mm-yyyy':
+        day = parseInt(digits.slice(0, 2), 10)
+        month = parseInt(digits.slice(2, 4), 10)
+        year = parseInt(digits.slice(4, 8), 10)
+        break
+      case 'mm/dd/yyyy':
+      case 'mm-dd-yyyy':
+        month = parseInt(digits.slice(0, 2), 10)
+        day = parseInt(digits.slice(2, 4), 10)
+        year = parseInt(digits.slice(4, 8), 10)
+        break
+      case 'yyyy-mm-dd':
+        year = parseInt(digits.slice(0, 4), 10)
+        month = parseInt(digits.slice(4, 6), 10)
+        day = parseInt(digits.slice(6, 8), 10)
+        break
+    }
+    
+    if (day && month && year) {
+      if (validateAndEmit(day, month, year)) {
+        // Update display with properly formatted value
+        inputValue.value = formatToDisplay(props.modelValue)
+      } else {
+        // Invalid date, revert to model value
+        inputValue.value = formatToDisplay(props.modelValue)
+      }
+    } else {
+      // Invalid, revert
+      inputValue.value = formatToDisplay(props.modelValue)
+    }
+  } else {
+    // Incomplete date, revert to model value
+    inputValue.value = formatToDisplay(props.modelValue)
+  }
+}
+
+// Handle keydown - simple like DateInput
+const handleKeydown = (event) => {
+  // Allow: backspace, delete, tab, escape, enter, and arrow keys
+  if ([8, 9, 27, 13, 46, 37, 38, 39, 40].includes(event.keyCode) ||
+      (event.keyCode === 65 && event.ctrlKey === true) ||
+      (event.keyCode === 67 && event.ctrlKey === true) ||
+      (event.keyCode === 86 && event.ctrlKey === true) ||
+      (event.keyCode === 88 && event.ctrlKey === true) ||
+      // Allow: home, end, left, right
+      (event.keyCode >= 35 && event.keyCode <= 39)) {
+    return
+  }
+  
+  // Ensure that it is a number and stop the keypress
+  if ((event.shiftKey || (event.keyCode < 48 || event.keyCode > 57)) && (event.keyCode < 96 || event.keyCode > 105)) {
+    event.preventDefault()
+  }
+}
 
 // Calendar days
 const calendarDays = computed(() => {
@@ -305,12 +565,19 @@ const updateCalendar = () => {
   // Calendar will update automatically via computed
 }
 
-// Watch modelValue to update calendar view
+// Watch modelValue to update input and calendar view
 watch(() => props.modelValue, (newValue) => {
   if (newValue) {
     const date = new Date(newValue + 'T00:00:00')
     currentMonth.value = date.getMonth()
     currentYear.value = date.getFullYear()
+    // Update input value if it's different (to avoid conflicts with user typing)
+    const formatted = formatToDisplay(newValue)
+    if (inputValue.value !== formatted) {
+      inputValue.value = formatted
+    }
+  } else {
+    inputValue.value = ''
   }
 }, { immediate: true })
 
@@ -320,7 +587,8 @@ const handleClickOutside = (event) => {
     isOpen.value &&
     calendarRef.value &&
     !calendarRef.value.contains(event.target) &&
-    !inputRef.value?.contains(event.target)
+    !inputRef.value?.contains(event.target) &&
+    !event.target.closest('button')
   ) {
     closeCalendar()
   }

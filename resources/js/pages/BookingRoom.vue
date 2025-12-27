@@ -338,7 +338,7 @@
                                         class="block text-sm font-medium text-gray-700 mb-2"
                                         >Ngày bắt đầu</label
                                     >
-                                    <DateInput
+                                    <DatePicker
                                         v-model="startDate"
                                         :min="today"
                                         placeholder="dd/mm/yyyy"
@@ -346,7 +346,6 @@
                                             startDateError ||
                                             bookingForm.errors.start_date
                                         "
-                                        required
                                     />
                                 </div>
 
@@ -356,7 +355,7 @@
                                         class="block text-sm font-medium text-gray-700 mb-2"
                                         >Ngày kết thúc</label
                                     >
-                                    <DateInput
+                                    <DatePicker
                                         v-model="endDate"
                                         :min="startDate || today"
                                         placeholder="dd/mm/yyyy"
@@ -364,7 +363,6 @@
                                             endDateError ||
                                             bookingForm.errors.end_date
                                         "
-                                        required
                                     />
                                 </div>
 
@@ -1210,6 +1208,7 @@ import AppLayout from "@/layouts/AppLayout.vue";
 import { useAuth } from "@/composables/useAuth";
 import RoomCard from "@/components/booking/RoomCard.vue";
 import DateInput from "@/components/ui/DateInput.vue";
+import DatePicker from "@/components/ui/DatePicker.vue";
 import {
     ChevronLeftIcon,
     ChevronRightIcon,
