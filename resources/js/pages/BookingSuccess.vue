@@ -250,19 +250,81 @@
             <div class="space-y-6">
               <div class="bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl p-6 border border-gray-200">
                 <div class="space-y-4">
-                  <div class="flex justify-between items-center py-3 border-b border-gray-300">
+                  <!-- Price Breakdown Table -->
+                  <div
+                    v-if="
+                      priceBreakdown.fullMonths > 0 ||
+                      priceBreakdown.fullWeeks > 0 ||
+                      priceBreakdown.remainingDays > 0
+                    "
+                    class="mb-4"
+                  >
+                    <h3 class="text-sm font-semibold text-gray-700 mb-3">
+                      Chi tiết giá thuê
+                    </h3>
+                    <div class="border border-gray-200 rounded-lg overflow-hidden">
+                      <table class="w-full text-sm">
+                        <thead class="bg-gray-50">
+                          <tr>
+                            <th class="px-4 py-2 text-left text-gray-700 font-medium">
+                              Loại
+                            </th>
+                            <th class="px-4 py-2 text-right text-gray-700 font-medium">
+                              Số lượng
+                            </th>
+                            <th class="px-4 py-2 text-right text-gray-700 font-medium">
+                              Thành tiền
+                            </th>
+                          </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-200">
+                          <tr v-if="priceBreakdown.fullMonths > 0">
+                            <td class="px-4 py-2 text-gray-700">
+                              Tháng
+                            </td>
+                            <td class="px-4 py-2 text-right text-gray-600">
+                              {{ priceBreakdown.fullMonths }}
+                              tháng ({{ priceBreakdown.fullMonths * 30 }}
+                              ngày)
+                            </td>
+                            <td class="px-4 py-2 text-right font-semibold text-gray-900">
+                              {{ formatPrice(priceBreakdown.monthsPrice) }}
+                            </td>
+                          </tr>
+                          <tr v-if="priceBreakdown.fullWeeks > 0">
+                            <td class="px-4 py-2 text-gray-700">
+                              Tuần
+                            </td>
+                            <td class="px-4 py-2 text-right text-gray-600">
+                              {{ priceBreakdown.fullWeeks }}
+                              tuần ({{ priceBreakdown.fullWeeks * 7 }}
+                              ngày)
+                            </td>
+                            <td class="px-4 py-2 text-right font-semibold text-gray-900">
+                              {{ formatPrice(priceBreakdown.weeksPrice) }}
+                            </td>
+                          </tr>
+                          <tr v-if="priceBreakdown.remainingDays > 0">
+                            <td class="px-4 py-2 text-gray-700">
+                              Ngày
+                            </td>
+                            <td class="px-4 py-2 text-right text-gray-600">
+                              {{ priceBreakdown.remainingDays }}
+                              ngày
+                            </td>
+                            <td class="px-4 py-2 text-right font-semibold text-gray-900">
+                              {{ formatPrice(priceBreakdown.remainingPrice) }}
+                            </td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+
+                  <div class="flex justify-between items-center py-3 border-b">
                     <span class="text-gray-700 font-medium">Tổng tiền phòng</span>
                     <span class="font-semibold text-gray-900 text-lg">
-                      {{ formatPrice(booking.total_price + booking.discount_amount) }}
-                    </span>
-                  </div>
-                  <div
-                    v-if="booking.discount_amount > 0"
-                    class="flex justify-between items-center py-3 border-b border-gray-300"
-                  >
-                    <span class="text-gray-700 font-medium">Giảm giá</span>
-                    <span class="font-semibold text-green-600 text-lg">
-                      -{{ formatPrice(booking.discount_amount) }}
+                      {{ formatPrice(booking.total_price) }}
                     </span>
                   </div>
                   <div class="flex justify-between items-center pt-4 mt-2 border-t-2 border-gray-400">
@@ -554,6 +616,115 @@ const calculateDays = (startDate, endDate) => {
   const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
   return diffDays + 1
 }
+
+// Tính breakdown tự động: tháng -> tuần -> ngày
+const calculateBreakdown = (days) => {
+  let remaining = days
+  const fullMonths = Math.floor(remaining / 30)
+  remaining = remaining % 30
+  const fullWeeks = Math.floor(remaining / 7)
+  const remainingDays = remaining % 7
+  return { fullMonths, fullWeeks, remainingDays }
+}
+
+// Tính giá breakdown chi tiết - sử dụng dữ liệu đã lưu từ booking
+const priceBreakdown = computed(() => {
+  if (!props.booking) {
+    return {
+      fullMonths: 0,
+      fullWeeks: 0,
+      remainingDays: 0,
+      monthsPrice: 0,
+      weeksPrice: 0,
+      remainingPrice: 0,
+    }
+  }
+
+  // Ưu tiên sử dụng dữ liệu đã lưu từ booking
+  if (
+    (props.booking.full_months !== undefined && props.booking.full_months !== null) ||
+    (props.booking.full_weeks !== undefined && props.booking.full_weeks !== null) ||
+    (props.booking.remaining_days !== undefined && props.booking.remaining_days !== null)
+  ) {
+    return {
+      fullMonths: props.booking.full_months ?? 0,
+      fullWeeks: props.booking.full_weeks ?? 0,
+      remainingDays: props.booking.remaining_days ?? 0,
+      monthsPrice: props.booking.months_price ?? 0,
+      weeksPrice: props.booking.weeks_price ?? 0,
+      remainingPrice: props.booking.remaining_price ?? 0,
+    }
+  }
+
+  // Fallback: tính toán lại nếu không có dữ liệu đã lưu (cho các booking cũ)
+  if (
+    !props.booking?.room ||
+    !props.booking?.start_date ||
+    !props.booking?.end_date
+  ) {
+    return {
+      fullMonths: 0,
+      fullWeeks: 0,
+      remainingDays: 0,
+      monthsPrice: 0,
+      weeksPrice: 0,
+      remainingPrice: 0,
+    }
+  }
+
+  const days = calculateDays(
+    props.booking.start_date,
+    props.booking.end_date
+  )
+  if (days <= 0) {
+    return {
+      fullMonths: 0,
+      fullWeeks: 0,
+      remainingDays: 0,
+      monthsPrice: 0,
+      weeksPrice: 0,
+      remainingPrice: 0,
+    }
+  }
+
+  const room = props.booking.room
+  const pricePerDay = room.price_per_day || room.pricePerDay || 0
+  const pricePerWeek = room.price_per_week || room.pricePerWeek || null
+  const pricePerMonth = room.price_per_month || room.pricePerMonth || null
+
+  // Phân tích số ngày thành tháng/tuần/ngày
+  const { fullMonths, fullWeeks, remainingDays } = calculateBreakdown(days)
+
+  // Tính giá cho từng phần - ưu tiên giá ưu đãi
+  let monthsPrice = 0
+  if (fullMonths > 0) {
+    if (pricePerMonth !== null && pricePerMonth > 0) {
+      monthsPrice = fullMonths * pricePerMonth
+    } else {
+      monthsPrice = fullMonths * pricePerDay * 30
+    }
+  }
+
+  let weeksPrice = 0
+  if (fullWeeks > 0) {
+    if (pricePerWeek !== null && pricePerWeek > 0) {
+      weeksPrice = fullWeeks * pricePerWeek
+    } else {
+      weeksPrice = fullWeeks * pricePerDay * 7
+    }
+  }
+
+  const remainingPrice = remainingDays * pricePerDay
+
+  return {
+    fullMonths,
+    fullWeeks,
+    remainingDays,
+    monthsPrice: Math.round(monthsPrice),
+    weeksPrice: Math.round(weeksPrice),
+    remainingPrice: Math.round(remainingPrice),
+  }
+})
 
 const getBookingStatusText = (status) => {
   const statusMap = {

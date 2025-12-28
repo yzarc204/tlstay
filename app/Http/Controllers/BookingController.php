@@ -244,6 +244,19 @@ class BookingController extends Controller
             'contract_signed' => $booking->contract_signed ?? false,
             'signed_at' => $booking->signed_at ? $booking->signed_at->format('Y-m-d H:i:s') : null,
             'invoices' => $invoices,
+            // Price breakdown data
+            'full_months' => $booking->full_months ?? null,
+            'full_weeks' => $booking->full_weeks ?? null,
+            'remaining_days' => $booking->remaining_days ?? null,
+            'months_price' => $booking->months_price ? (float) $booking->months_price : null,
+            'weeks_price' => $booking->weeks_price ? (float) $booking->weeks_price : null,
+            'remaining_price' => $booking->remaining_price ? (float) $booking->remaining_price : null,
+            // Room data for fallback calculation
+            'room' => [
+                'price_per_day' => $booking->room->price_per_day ? (float) $booking->room->price_per_day : null,
+                'price_per_week' => $booking->room->price_per_week ? (float) $booking->room->price_per_week : null,
+                'price_per_month' => $booking->room->price_per_month ? (float) $booking->room->price_per_month : null,
+            ],
         ];
 
         return Inertia::render('BookingSuccess', [
