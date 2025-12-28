@@ -1,19 +1,19 @@
 <template>
-    <div class="card group cursor-pointer" @click="goToDetail">
-        <!-- Image -->
-        <div class="relative overflow-hidden h-56">
-            <img
-                :src="house.image"
-                :alt="house.name"
-                class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-            />
-            <div class="absolute top-4 left-4">
+  <div class="card group cursor-pointer" @click="goToDetail">
+    <!-- Image -->
+    <div class="relative overflow-hidden h-56">
+      <img
+        :src="house.image"
+        :alt="house.name"
+        class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+      />
+      <div class="absolute top-4 left-4">
                 <span class="badge bg-primary text-white">
                     {{ house.availableRooms }} phòng trống
                 </span>
-            </div>
+      </div>
             <div class="absolute top-4 right-4" @click.stop>
-                <button
+        <button
                     @click="toggleWishlist"
                     :class="[
                         'w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300 shadow-md hover:shadow-lg',
@@ -21,68 +21,68 @@
                             ? 'bg-secondary text-white'
                             : 'bg-white hover:bg-primary hover:text-white',
                     ]"
-                >
+        >
                     <HeartIcon
                         :class="['w-5 h-5', isInWishlist ? 'fill-current' : '']"
                     />
-                </button>
-            </div>
-        </div>
+        </button>
+      </div>
+    </div>
 
-        <!-- Content -->
-        <div class="p-5">
-            <!-- Title -->
+    <!-- Content -->
+    <div class="p-5">
+      <!-- Title -->
             <h3
                 class="text-xl font-bold text-gray-900 mb-2 group-hover:text-primary transition-colors"
             >
-                {{ house.name }}
-            </h3>
+        {{ house.name }}
+      </h3>
 
-            <!-- Location -->
-            <div class="flex items-start space-x-2 text-gray-600 mb-4">
-                <MapPinIcon class="w-5 h-5 mt-0.5 flex-shrink-0" />
-                <span class="text-sm">{{ house.address }}</span>
-            </div>
+      <!-- Location -->
+      <div class="flex items-start space-x-2 text-gray-600 mb-4">
+        <MapPinIcon class="w-5 h-5 mt-0.5 flex-shrink-0" />
+        <span class="text-sm">{{ house.address }}</span>
+      </div>
 
-            <!-- Features -->
+      <!-- Features -->
             <div
                 class="flex items-center space-x-4 text-sm text-gray-600 mb-4 pb-4 border-b"
             >
-                <div class="flex items-center space-x-1">
-                    <BuildingOfficeIcon class="w-5 h-5" />
-                    <span>{{ house.floors }} tầng</span>
-                </div>
-                <div class="flex items-center space-x-1">
-                    <HomeIcon class="w-5 h-5" />
-                    <span>{{ house.totalRooms }} phòng</span>
-                </div>
-                <div class="flex items-center space-x-1">
-                    <StarIconSolid class="w-5 h-5 text-yellow-400" />
-                    <span>{{ house.rating }}</span>
-                </div>
-            </div>
+        <div class="flex items-center space-x-1">
+          <BuildingOfficeIcon class="w-5 h-5" />
+          <span>{{ house.floors }} tầng</span>
+        </div>
+        <div class="flex items-center space-x-1">
+          <HomeIcon class="w-5 h-5" />
+          <span>{{ house.totalRooms }} phòng</span>
+        </div>
+        <div class="flex items-center space-x-1">
+          <StarIconSolid class="w-5 h-5 text-yellow-400" />
+          <span>{{ house.rating }}</span>
+        </div>
+      </div>
 
-            <!-- Price & Action -->
-            <div class="flex items-center justify-between">
-                <div>
-                    <p class="text-2xl font-bold text-primary">
-                        {{ formatPrice(calculateMonthlyPrice()) }}
+      <!-- Price & Action -->
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-2xl font-bold text-primary">
+            {{ formatPrice(calculateMonthlyPrice()) }}
                         <span class="text-sm text-gray-500 font-normal"
                             >/tháng</span
                         >
-                    </p>
+          </p>
                     <p class="text-sm text-gray-500">
                         {{ formatPrice(house.pricePerDay) }}/ngày
                     </p>
-                </div>
-                <button
-                    class="px-5 py-2.5 bg-primary text-white rounded-lg hover:bg-secondary transition-all duration-300 font-medium shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
-                >
-                    Xem chi tiết
-                </button>
-            </div>
         </div>
+        <button
+          class="px-5 py-2.5 bg-primary text-white rounded-lg hover:bg-secondary transition-all duration-300 font-medium shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
+        >
+          Xem chi tiết
+        </button>
+      </div>
     </div>
+  </div>
 </template>
 
 <script setup>
@@ -100,10 +100,10 @@ import axios from "axios";
 
 const page = usePage();
 const props = defineProps({
-    house: {
-        type: Object,
-        required: true,
-    },
+  house: {
+    type: Object,
+    required: true,
+  },
 });
 
 const isInWishlist = ref(props.house.isInWishlist || false);
@@ -168,11 +168,11 @@ const formatPrice = (price) => {
 
 // Tính giá theo tháng: sử dụng giá tháng có sẵn hoặc tính từ giá ngày
 const calculateMonthlyPrice = () => {
-    // Nếu có giá tháng riêng thì dùng
-    if (props.house.pricePerMonth) {
+  // Nếu có giá tháng riêng thì dùng
+  if (props.house.pricePerMonth) {
         return props.house.pricePerMonth;
-    }
-    // Nếu không thì tính từ giá ngày × 30
+  }
+  // Nếu không thì tính từ giá ngày × 30
     if (!props.house.pricePerDay) return 0;
     return Math.round(props.house.pricePerDay * 30);
 };

@@ -210,7 +210,7 @@
                                 <div>
                                     <div
                                         class="flex items-center justify-between mb-1"
-                                    >
+                        >
                                         <h3
                                             class="text-lg font-semibold text-primary"
                                         >
@@ -236,7 +236,7 @@
                                 </div>
 
                                 <!-- Room Amenities -->
-                                <div
+                            <div
                                     v-if="roomAmenities.length > 0"
                                     class="pt-2"
                                 >
@@ -344,13 +344,13 @@
                                             <span
                                                 class="font-semibold text-gray-900"
                                             >
-                                                {{
-                                                    formatPrice(
-                                                        selectedRoom.pricePerDay
-                                                    )
+                                        {{
+                                            formatPrice(
+                                                selectedRoom.pricePerDay
+                                            )
                                                 }}
                                             </span>
-                                        </div>
+                                </div>
                                         <div
                                             class="flex items-center justify-between text-sm py-2 border-b border-gray-100"
                                         >
@@ -368,7 +368,7 @@
                                                     )
                                                 }}
                                             </span>
-                                        </div>
+                            </div>
                                         <div
                                             class="flex items-center justify-between text-sm py-2"
                                         >
@@ -413,7 +413,7 @@
                                     Chọn một phòng từ sơ đồ bên trái
                                 </p>
                             </div>
-                        </div>
+                            </div>
 
                         <!-- Booking Form Section -->
                         <div class="card p-6">
@@ -1590,7 +1590,7 @@ const calculatePrice = (room, days) => {
 
     // Tổng giá sau khi áp dụng giá ưu đãi
     const total = monthsPrice + weeksPrice + remainingPrice;
-
+    
     // Tính giảm giá so với việc thuê toàn bộ theo ngày (để hiển thị tiết kiệm)
     const fullDayPrice = days * pricePerDay;
     const discount = Math.max(0, fullDayPrice - total);
