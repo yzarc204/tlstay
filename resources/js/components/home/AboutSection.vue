@@ -7,8 +7,8 @@
                         >Về chúng tôi</span
                     >
                     <h2 class="text-4xl font-bold mb-6 text-secondary">
-                        Hơn 500 căn phòng trọ có sẵn để thuê trong bán kính 5km
-                        từ Trường Đại học Thăng Long
+                        Hơn 500 căn phòng trọ sẵn sàng để cho thuê trong bán
+                        kính 5km từ Trường Đại học Thăng Long
                     </h2>
                     <p class="text-gray-600 mb-6 leading-relaxed">
                         TL STAY là nền tảng cho thuê phòng trọ hàng đầu tại Hà
