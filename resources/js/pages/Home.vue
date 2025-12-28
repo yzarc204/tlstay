@@ -1,5 +1,5 @@
 <template>
-  <Head title="Trang chủ" />
+  <Head />
   <AppLayout>
     <div class="home">
       <!-- Slider Section with Search Box -->
