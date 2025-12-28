@@ -231,6 +231,26 @@
             </div>
         </div>
     </footer>
+    <!-- Crafted with love bar -->
+    <div class="bg-mid-blue-600 border-t border-mid-blue-700 py-3">
+        <div class="container mx-auto px-4">
+            <div class="flex items-center justify-center">
+                <p class="text-white text-xs flex items-center gap-1">
+                    <span>Crafted with</span>
+                    <HeartIcon class="w-3.5 h-3.5 text-red-500" />
+                    <span>by</span>
+                    <a
+                        href="https://www.instagram.com/ngthuifff/"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        class="text-secondary hover:text-secondary-300 transition-colors font-medium"
+                    >
+                        @kadev
+                    </a>
+                </p>
+            </div>
+        </div>
+    </div>
 </template>
 
 <script setup>
@@ -241,6 +261,7 @@ import {
     PhoneIcon,
     EnvelopeIcon,
 } from "@heroicons/vue/24/outline";
+import { HeartIcon } from "@heroicons/vue/24/solid";
 import SocialIcon from "@/components/SocialIcon.vue";
 
 const page = usePage();
