@@ -28,6 +28,16 @@ class Booking extends Model
         'signed_at',
         'contract_signed',
         'booking_code',
+        // Price breakdown fields
+        'full_months',
+        'full_weeks',
+        'remaining_days',
+        'month_unit_price',
+        'week_unit_price',
+        'day_unit_price',
+        'months_price',
+        'weeks_price',
+        'remaining_price',
     ];
 
     protected function casts(): array
@@ -40,6 +50,13 @@ class Booking extends Model
             'paid_at' => 'datetime',
             'signed_at' => 'datetime',
             'contract_signed' => 'boolean',
+            // Price breakdown casts
+            'month_unit_price' => 'decimal:2',
+            'week_unit_price' => 'decimal:2',
+            'day_unit_price' => 'decimal:2',
+            'months_price' => 'decimal:2',
+            'weeks_price' => 'decimal:2',
+            'remaining_price' => 'decimal:2',
         ];
     }
 

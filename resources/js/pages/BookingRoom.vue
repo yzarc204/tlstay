@@ -623,14 +623,14 @@
                                                     }}</span
                                                 >
                                             </div>
-                                            <!-- Giảm giá -->
+                                            <!-- Tiết kiệm -->
                                             <div
                                                 v-if="
                                                     priceBreakdown.discount > 0
                                                 "
                                                 class="flex justify-between text-sm text-primary mt-2 pt-2 border-t border-gray-200"
                                             >
-                                                <span>Giảm giá:</span>
+                                                <span>Tiết kiệm:</span>
                                                 <span class="font-medium"
                                                     >-{{
                                                         formatPrice(

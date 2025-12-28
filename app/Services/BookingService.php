@@ -31,6 +31,7 @@ class BookingService
      * @param float $totalPrice
      * @param float $discountAmount
      * @param string|null $notes
+     * @param array|null $priceBreakdown
      * @return Booking
      * @throws \Exception
      */
@@ -42,7 +43,8 @@ class BookingService
         string $endDate,
         float $totalPrice,
         float $discountAmount = 0,
-        ?string $notes = null
+        ?string $notes = null,
+        ?array $priceBreakdown = null
     ): Booking {
         // Validate room belongs to house
         if ($room->house_id != $house->id) {
@@ -51,20 +53,20 @@ class BookingService
 
         // Use database transaction to ensure atomicity
         try {
-            return DB::transaction(function () use ($user, $house, $room, $startDate, $endDate, $totalPrice, $discountAmount, $notes) {
+            return DB::transaction(function () use ($user, $house, $room, $startDate, $endDate, $totalPrice, $discountAmount, $notes, $priceBreakdown) {
                 // Lock room to prevent race conditions
                 $lockedRoom = Room::lockForUpdate()->findOrFail($room->id);
-                
+
                 // Check room availability
                 if (!$this->roomAvailabilityService->isAvailableForDates($lockedRoom, $startDate, $endDate)) {
                     throw new \Exception('Phòng này đã được đặt hoặc đang có người ở trong khoảng thời gian bạn chọn. Vui lòng chọn khoảng thời gian khác.');
                 }
-                
+
                 // Generate unique booking code
                 $bookingCode = CodeGenerator::generateBookingCode();
-                
-                // Create booking with booking code
-                $booking = Booking::create([
+
+                // Prepare booking data
+                $bookingData = [
                     'user_id' => $user->id,
                     'house_id' => $house->id,
                     'room_id' => $room->id,
@@ -77,8 +79,26 @@ class BookingService
                     'status' => 'active',
                     'payment_status' => 'pending',
                     'booking_code' => $bookingCode,
-                ]);
-                
+                ];
+
+                // Add price breakdown if provided
+                if ($priceBreakdown) {
+                    $bookingData = array_merge($bookingData, [
+                        'full_months' => $priceBreakdown['full_months'] ?? 0,
+                        'full_weeks' => $priceBreakdown['full_weeks'] ?? 0,
+                        'remaining_days' => $priceBreakdown['remaining_days'] ?? 0,
+                        'month_unit_price' => $priceBreakdown['month_unit_price'] ?? null,
+                        'week_unit_price' => $priceBreakdown['week_unit_price'] ?? null,
+                        'day_unit_price' => $priceBreakdown['day_unit_price'] ?? null,
+                        'months_price' => $priceBreakdown['months_price'] ?? 0,
+                        'weeks_price' => $priceBreakdown['weeks_price'] ?? 0,
+                        'remaining_price' => $priceBreakdown['remaining_price'] ?? 0,
+                    ]);
+                }
+
+                // Create booking with booking code and price breakdown
+                $booking = Booking::create($bookingData);
+
                 return $booking;
             });
         } catch (\Illuminate\Database\QueryException $e) {

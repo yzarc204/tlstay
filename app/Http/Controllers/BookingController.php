@@ -21,7 +21,7 @@ class BookingController extends Controller
                 'rooms as total_rooms_count',
             ])
             ->findOrFail($id);
-        
+
         // Get selected dates from request (if user has selected dates)
         $startDate = $request->query('start_date');
         $endDate = $request->query('end_date');
@@ -43,7 +43,7 @@ class BookingController extends Controller
                     // Mặc định tất cả phòng ở trạng thái trống khi không có ngày
                     $status = 'available';
                 }
-                
+
                 return [
                     'id' => $room->id,
                     'roomNumber' => $room->room_number,
@@ -58,12 +58,12 @@ class BookingController extends Controller
                 ];
             })
             ->values();
-        
+
         // Calculate available rooms count based on status (only 'available' status)
         $availableRoomsCount = $rooms->filter(function ($room) {
             return $room['status'] === 'available';
         })->count();
-        
+
         // Calculate rooms by status for display (only available and active)
         $roomsByStatus = [
             'available' => $rooms->filter(fn($r) => $r['status'] === 'available')->count(),
@@ -128,6 +128,9 @@ class BookingController extends Controller
             return back()->withErrors($validation['errors'])->withInput();
         }
 
+        // Calculate price breakdown
+        $breakdown = $this->calculatePriceBreakdown($room, $request->start_date, $request->end_date);
+
         // Create booking using service
         try {
             $booking = $bookingService->createBooking(
@@ -138,7 +141,8 @@ class BookingController extends Controller
                 $request->end_date,
                 $request->total_price,
                 $request->discount_amount ?? 0,
-                $request->notes
+                $request->notes,
+                $breakdown
             );
         } catch (\Illuminate\Database\QueryException $e) {
             \Log::error('Database error creating booking', [
@@ -151,18 +155,18 @@ class BookingController extends Controller
                 'error_code' => $e->errorInfo[1] ?? null,
                 'trace' => $e->getTraceAsString(),
             ]);
-            
+
             // Handle duplicate entry error (SQLSTATE 23000)
             if (isset($e->errorInfo[0]) && $e->errorInfo[0] == '23000') {
                 return back()->withErrors([
                     'message' => 'Có lỗi xảy ra khi tạo đơn đặt phòng. Vui lòng thử lại.'
                 ])->withInput();
             }
-            
+
             return back()->withErrors([
                 'message' => 'Có lỗi xảy ra khi tạo đơn đặt phòng. Vui lòng thử lại.'
             ])->withInput();
-            
+
         } catch (\Exception $e) {
             \Log::error('Error creating booking', [
                 'user_id' => $user->id,
@@ -172,7 +176,7 @@ class BookingController extends Controller
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString(),
             ]);
-            
+
             return back()->withErrors([
                 'room_id' => $e->getMessage()
             ])->withInput();
@@ -183,7 +187,7 @@ class BookingController extends Controller
         if ($request->header('X-Inertia')) {
             return Inertia::location(route('payment.create', ['bookingId' => $booking->id]));
         }
-        
+
         return redirect()->route('payment.create', ['bookingId' => $booking->id])
             ->with('success', 'Đặt phòng thành công! Vui lòng thanh toán để hoàn tất.');
     }
@@ -245,5 +249,60 @@ class BookingController extends Controller
         return Inertia::render('BookingSuccess', [
             'booking' => $bookingData,
         ]);
+    }
+
+    /**
+     * Calculate price breakdown for booking
+     */
+    private function calculatePriceBreakdown($room, $startDate, $endDate)
+    {
+        $start = new \DateTime($startDate);
+        $end = new \DateTime($endDate);
+        $diff = $start->diff($end);
+        $days = $diff->days + 1; // Include both start and end date
+
+        $pricePerDay = $room->price_per_day ?? 0;
+        $pricePerWeek = $room->price_per_week ?? null;
+        $pricePerMonth = $room->price_per_month ?? null;
+
+        // Calculate breakdown: months -> weeks -> days
+        $remaining = $days;
+        $fullMonths = floor($remaining / 30);
+        $remaining = $remaining % 30;
+        $fullWeeks = floor($remaining / 7);
+        $remainingDays = $remaining % 7;
+
+        // Calculate prices
+        $monthsPrice = 0;
+        if ($fullMonths > 0) {
+            if ($pricePerMonth !== null && $pricePerMonth > 0) {
+                $monthsPrice = $fullMonths * $pricePerMonth;
+            } else {
+                $monthsPrice = $fullMonths * $pricePerDay * 30;
+            }
+        }
+
+        $weeksPrice = 0;
+        if ($fullWeeks > 0) {
+            if ($pricePerWeek !== null && $pricePerWeek > 0) {
+                $weeksPrice = $fullWeeks * $pricePerWeek;
+            } else {
+                $weeksPrice = $fullWeeks * $pricePerDay * 7;
+            }
+        }
+
+        $remainingPrice = $remainingDays * $pricePerDay;
+
+        return [
+            'full_months' => $fullMonths,
+            'full_weeks' => $fullWeeks,
+            'remaining_days' => $remainingDays,
+            'month_unit_price' => $pricePerMonth,
+            'week_unit_price' => $pricePerWeek,
+            'day_unit_price' => $pricePerDay,
+            'months_price' => round($monthsPrice, 2),
+            'weeks_price' => round($weeksPrice, 2),
+            'remaining_price' => round($remainingPrice, 2),
+        ];
     }
 }
