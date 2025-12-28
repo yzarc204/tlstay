@@ -76,28 +76,20 @@
                             <span>Quản lí</span>
                         </Link>
                         <Link
-                            href="/my-rentals"
-                            @click="userDropdownOpen = false"
-                            class="flex items-center space-x-2 px-4 py-2 text-gray-700 hover:bg-gray-100 transition-colors"
-                        >
-                            <HomeIcon class="w-5 h-5" />
-                            <span>Phòng của tôi</span>
-                        </Link>
-                        <Link
-                            href="/wishlist"
-                            @click="userDropdownOpen = false"
-                            class="flex items-center space-x-2 px-4 py-2 text-gray-700 hover:bg-gray-100 transition-colors"
-                        >
-                            <HeartIcon class="w-5 h-5 text-red-500" />
-                            <span>Yêu thích</span>
-                        </Link>
-                        <Link
                             href="/profile"
                             @click="userDropdownOpen = false"
                             class="flex items-center space-x-2 px-4 py-2 text-gray-700 hover:bg-gray-100 transition-colors"
                         >
                             <UserIcon class="w-5 h-5 text-primary" />
                             <span>Thông tin của tôi</span>
+                        </Link>
+                        <Link
+                            href="/my-rentals"
+                            @click="userDropdownOpen = false"
+                            class="flex items-center space-x-2 px-4 py-2 text-gray-700 hover:bg-gray-100 transition-colors"
+                        >
+                            <HomeIcon class="w-5 h-5" />
+                            <span>Phòng của tôi</span>
                         </Link>
                         <Link
                             href="/invoices"
@@ -116,6 +108,14 @@
                                         : pendingInvoicesCount
                                 }}
                             </span>
+                        </Link>
+                        <Link
+                            href="/wishlist"
+                            @click="userDropdownOpen = false"
+                            class="flex items-center space-x-2 px-4 py-2 text-gray-700 hover:bg-gray-100 transition-colors"
+                        >
+                            <HeartIcon class="w-5 h-5 text-red-500" />
+                            <span>Yêu thích</span>
                         </Link>
                         <button
                             @click="handleLogout"
@@ -312,29 +312,13 @@
                                         >
                                     </Link>
                                     <Link
-                                        href="/wishlist"
-                                        @click="menuOpen = false"
-                                        :class="[
-                                            'menu-item flex items-center space-x-3 w-full py-3 px-4 text-gray-700 hover:bg-gray-100 rounded-lg transition-all duration-200',
-                                            { 'menu-item-animated': menuOpen },
-                                        ]"
-                                        :style="{ '--delay': '0.2s' }"
-                                    >
-                                        <HeartIcon
-                                            class="w-5 h-5 text-red-500"
-                                        />
-                                        <span class="font-medium"
-                                            >Yêu thích</span
-                                        >
-                                    </Link>
-                                    <Link
                                         href="/invoices"
                                         @click="menuOpen = false"
                                         :class="[
                                             'menu-item flex items-center space-x-3 w-full py-3 px-4 text-gray-700 hover:bg-gray-100 rounded-lg transition-all duration-200',
                                             { 'menu-item-animated': menuOpen },
                                         ]"
-                                        :style="{ '--delay': '0.25s' }"
+                                        :style="{ '--delay': '0.2s' }"
                                     >
                                         <DocumentTextIcon
                                             class="w-5 h-5 text-primary"
@@ -350,6 +334,22 @@
                                                     : pendingInvoicesCount
                                             }}
                                         </span>
+                                    </Link>
+                                    <Link
+                                        href="/wishlist"
+                                        @click="menuOpen = false"
+                                        :class="[
+                                            'menu-item flex items-center space-x-3 w-full py-3 px-4 text-gray-700 hover:bg-gray-100 rounded-lg transition-all duration-200',
+                                            { 'menu-item-animated': menuOpen },
+                                        ]"
+                                        :style="{ '--delay': '0.25s' }"
+                                    >
+                                        <HeartIcon
+                                            class="w-5 h-5 text-red-500"
+                                        />
+                                        <span class="font-medium"
+                                            >Yêu thích</span
+                                        >
                                     </Link>
                                 </div>
 
