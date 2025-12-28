@@ -21,15 +21,21 @@ class UserSeeder extends Seeder
             'phone' => '036975008',
             'role' => 'manager',
             'avatar' => null,
+            'permanent_address' => '789 Giải Phóng, Quận Hoàng Mai, Thành phố Hà Nội',
+            'date_of_birth' => '2005-09-09',
+            'gender' => 'female',
         ]);
 
         // Tạo 1 tài khoản customer
         User::factory()->create([
-            'name' => 'Nguyễn Văn A',
+            'name' => 'Hà Kỳ Anh',
             'email' => 'customer@tlstay.com',
             'password' => Hash::make('123456'),
             'phone' => '0987654321',
             'role' => 'customer',
+            'permanent_address' => 'Ngõ 160 Cầu Giấy, Quận Cầu Giấy, Thành phố Hà Nội',
+            'date_of_birth' => '2004-03-03',
+            'gender' => 'male'
         ]);
 
         // Tạo 50 tài khoản customer mẫu
